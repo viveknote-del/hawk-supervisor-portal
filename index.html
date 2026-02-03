@@ -15,9 +15,6 @@
         .login-logo img{width:95%;height:95%;object-fit:contain}
         .login-title{font-size:20px;font-weight:700}
         .login-subtitle{font-size:12px;opacity:0.9;margin-top:5px}
-        .login-tabs{display:flex;border-bottom:3px solid var(--hawk-gold)}
-        .login-tab{flex:1;padding:14px;text-align:center;cursor:pointer;font-weight:600;color:var(--text-muted);background:var(--surface-alt);border:none}
-        .login-tab.active{background:#fff;color:var(--hawk-red)}
         .login-form{padding:25px}
         .form-group{margin-bottom:18px}
         .form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
@@ -65,7 +62,7 @@
         .stat-label{font-size:13px;opacity:0.8;margin-top:4px}
         .progress-bar-bg{background:rgba(255,255,255,0.3);height:8px;border-radius:4px;margin-top:12px;overflow:hidden}
         .progress-bar{height:100%;background:var(--hawk-gold);border-radius:4px}
-        .reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+        .reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
         .report-card{background:#fff;border-radius:14px;padding:18px;border:2px solid var(--border);cursor:pointer;position:relative}
         .report-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--hawk-gold);border-radius:14px 0 0 14px}
         .report-card:hover{border-color:var(--hawk-red);box-shadow:0 8px 25px rgba(196,30,58,0.15)}
@@ -80,7 +77,7 @@
         .report-status.completed{background:#D1FAE5;color:#059669}
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
         .modal-overlay.active{display:flex}
-        .modal{background:#fff;border-radius:18px;width:100%;max-width:850px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;border:3px solid var(--hawk-gold)}
+        .modal{background:#fff;border-radius:18px;width:100%;max-width:900px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;border:3px solid var(--hawk-gold)}
         .modal-header{padding:18px;background:linear-gradient(135deg,#C41E3A,#9B1B2F);color:#fff;display:flex;justify-content:space-between;align-items:center}
         .modal-title{font-size:17px;font-weight:700}
         .modal-close{width:34px;height:34px;border-radius:8px;border:none;background:rgba(255,255,255,0.2);cursor:pointer;font-size:18px;color:#fff}
@@ -99,17 +96,22 @@
         .import-box input[type="file"]{display:none}
         .import-box label{display:inline-block;padding:12px 24px;background:var(--hawk-red);color:#fff;border-radius:8px;cursor:pointer;font-weight:600;margin:5px}
         .import-box label:hover{background:var(--hawk-red-dark)}
-        .entry-row{background:var(--surface-alt);border-radius:10px;padding:15px;margin-bottom:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;border-left:3px solid var(--hawk-blue)}
+        .entry-row{background:var(--surface-alt);border-radius:10px;padding:15px;margin-bottom:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end;border-left:3px solid var(--hawk-blue)}
         .entry-row input,.entry-row select,.entry-row textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px}
         .entry-row label{font-size:11px;color:var(--text-muted);display:block;margin-bottom:3px}
         .add-entry-btn{width:100%;padding:12px;background:#fff;border:2px dashed var(--hawk-blue);border-radius:10px;color:var(--hawk-blue);cursor:pointer;font-weight:500}
-        .remove-btn{padding:6px 10px;background:#FEF2F2;color:var(--error);border:none;border-radius:6px;cursor:pointer}
+        .remove-btn{padding:6px 10px;background:#FEF2F2;color:var(--error);border:none;border-radius:6px;cursor:pointer;font-size:12px}
         .toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2000}
         .toast{padding:12px 22px;border-radius:10px;color:#fff;font-weight:500;margin-top:8px;animation:slideUp 0.3s}
         .toast.success{background:var(--success)}.toast.error{background:var(--error)}.toast.warning{background:var(--warning)}.toast.info{background:var(--hawk-blue)}
         @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         .hidden{display:none!important}
-        @media(max-width:768px){.header-content{flex-direction:column}.dashboard-grid{grid-template-columns:1fr}}
+        .patrol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:5px;margin-top:15px}
+        .patrol-day{text-align:center;padding:8px 4px;border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer}
+        .patrol-day.checked{background:var(--success);color:#fff;border-color:var(--success)}
+        .patrol-day .day-num{font-weight:700;display:block}
+        .patrol-day .day-name{font-size:9px;opacity:0.7}
+        @media(max-width:768px){.header-content{flex-direction:column}.dashboard-grid{grid-template-columns:1fr}.entry-row{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -121,27 +123,14 @@
                 <div class="login-title">Supervisor Portal v3</div>
                 <div class="login-subtitle">Hawk Security Services LLC</div>
             </div>
-            <div class="login-tabs">
-                <button class="login-tab active" onclick="showLoginTab('login')">Login</button>
-                <button class="login-tab" onclick="showLoginTab('register')">Register</button>
-            </div>
-            <div id="loginPane" class="login-form">
+            <div class="login-form">
                 <div id="loginMsg" class="msg"></div>
                 <div class="form-group"><label>Employee ID</label><input type="text" id="loginId" placeholder="e.g., SUP001"></div>
                 <div class="form-group"><label>Password</label><input type="password" id="loginPw" placeholder="Enter password"></div>
                 <button class="btn btn-primary" onclick="doLogin()">🔐 Login</button>
                 <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted);">Demo: SUP001/hawk123 | MGR001/manager123</p>
             </div>
-            <div id="registerPane" class="login-form hidden">
-                <div id="regMsg" class="msg"></div>
-                <div class="form-group"><label>Employee ID *</label><input type="text" id="regId" placeholder="e.g., SUP003"></div>
-                <div class="form-group"><label>Full Name *</label><input type="text" id="regName" placeholder="Your full name"></div>
-                <div class="form-group"><label>Designation</label><select id="regRole"><option>Supervisor</option><option>Senior Supervisor</option><option>Operations Supervisor</option></select></div>
-                <div class="form-group"><label>Password *</label><input type="password" id="regPw" placeholder="Min 6 characters"></div>
-                <div class="form-group"><label>Confirm Password *</label><input type="password" id="regPw2"></div>
-                <button class="btn btn-primary" onclick="doRegister()">📝 Create Account</button>
-            </div>
-            <div class="login-footer">© 2026 Hawk Security Services LLC | <a href="https://www.hawksecurityservice.com" target="_blank">www.hawksecurityservice.com</a></div>
+            <div class="login-footer">© 2026 Hawk Security Services LLC</div>
         </div>
     </div>
 
@@ -170,87 +159,68 @@
                 <button class="nav-tab" data-tab="reports">📝 Reports</button>
                 <button class="nav-tab" data-tab="history">📜 History</button>
                 <button class="nav-tab management-only" data-tab="management">👔 Management</button>
-                <button class="nav-tab" data-tab="data">🗄️ Sites & Employees</button>
+                <button class="nav-tab" data-tab="data">🗄️ Import Data</button>
             </div>
         </nav>
         <main class="main-content">
-            <!-- DASHBOARD TAB -->
+            <!-- DASHBOARD -->
             <div id="dashboardTab" class="tab-content active">
                 <div class="dashboard-grid">
-                    <div class="stat-card primary"><div class="stat-value" id="statCompleted">0/10</div><div class="stat-label">Your Reports</div><div class="progress-bar-bg"><div class="progress-bar" id="progressBar" style="width:0%"></div></div></div>
+                    <div class="stat-card primary"><div class="stat-value" id="statCompleted">0/9</div><div class="stat-label">Reports Submitted</div><div class="progress-bar-bg"><div class="progress-bar" id="progressBar" style="width:0%"></div></div></div>
                     <div class="stat-card blue"><div class="stat-value" id="statSites">0</div><div class="stat-label">Sites</div></div>
                     <div class="stat-card"><div class="stat-value" id="statEmps">0</div><div class="stat-label">Employees</div></div>
                     <div class="stat-card"><div class="stat-value" id="statDays">0</div><div class="stat-label">Days Left</div></div>
                 </div>
-                <h3 style="margin-bottom:16px;color:var(--hawk-red-dark);">📝 Pending Reports</h3>
+                <h3 style="margin-bottom:16px;color:var(--hawk-red-dark);">📝 Pending Reports for <span id="currentMonth"></span></h3>
                 <div class="reports-grid" id="pendingGrid"></div>
             </div>
             
-            <!-- REPORTS TAB -->
+            <!-- ALL REPORTS -->
             <div id="reportsTab" class="tab-content">
                 <h2 style="margin-bottom:18px;color:var(--hawk-red-dark);">Monthly Reports - <span id="periodLabel"></span></h2>
                 <div class="reports-grid" id="allReportsGrid"></div>
             </div>
             
-            <!-- HISTORY TAB -->
+            <!-- HISTORY -->
             <div id="historyTab" class="tab-content">
-                <h2 style="margin-bottom:18px;color:var(--hawk-red-dark);">📜 Your Submitted Reports</h2>
+                <h2 style="margin-bottom:18px;color:var(--hawk-red-dark);">📜 Submitted Reports</h2>
                 <div id="historyList"></div>
             </div>
             
-            <!-- MANAGEMENT TAB -->
+            <!-- MANAGEMENT -->
             <div id="managementTab" class="tab-content">
                 <h2 style="margin-bottom:18px;color:var(--hawk-red-dark);">👔 Management Dashboard</h2>
                 <div class="dashboard-grid">
-                    <div class="stat-card primary"><div class="stat-value" id="mgrTotalReports">0</div><div class="stat-label">Total Reports This Month</div></div>
+                    <div class="stat-card primary"><div class="stat-value" id="mgrTotalReports">0</div><div class="stat-label">Total Reports</div></div>
                     <div class="stat-card blue"><div class="stat-value" id="mgrSupervisors">0</div><div class="stat-label">Supervisors</div></div>
                 </div>
-                <div class="section-box"><h3>📊 Reports by Supervisor</h3><div id="supervisorBreakdown"></div></div>
-                <div class="section-box"><h3>📋 All Reports This Month</h3><div id="allReportsList"></div></div>
+                <div class="section-box"><h3>📊 By Supervisor</h3><div id="supervisorBreakdown"></div></div>
+                <div class="section-box"><h3>📋 All Reports</h3><div id="allReportsList"></div></div>
             </div>
             
-            <!-- DATA TAB - IMPORT SITES & EMPLOYEES -->
+            <!-- IMPORT DATA -->
             <div id="dataTab" class="tab-content">
-                <!-- SITES IMPORT -->
                 <div class="import-box">
                     <h4>📥 Import Sites/Clients</h4>
-                    <p>Upload CSV or JSON file with columns: SiteID, Name, Client, Location, Type, ContactPerson</p>
+                    <p>CSV columns: siteId, name, location, contactPerson, manningRequired</p>
                     <input type="file" id="sitesFile" accept=".csv,.json" onchange="importSites(event)">
-                    <label for="sitesFile">📁 Choose File</label>
-                    <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:5px" onclick="downloadSitesTemplate()">📄 Download Template</button>
+                    <label for="sitesFile">📁 Upload Sites</label>
+                    <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:5px" onclick="downloadSitesTemplate()">📄 Template</button>
                 </div>
-                
                 <div class="section-box">
-                    <h3>🏢 Sites/Clients (<span id="siteCount">0</span>) 
-                        <button class="btn btn-danger" style="width:auto;padding:5px 15px;font-size:12px;margin-left:auto" onclick="clearSites()">Clear All</button>
-                    </h3>
-                    <div style="overflow-x:auto;">
-                        <table class="data-table" id="sitesTable">
-                            <thead><tr><th>ID</th><th>Client Name</th><th>Location</th><th>Type</th><th>Contact</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                    <h3>🏢 Sites (<span id="siteCount">0</span>) <button class="btn btn-danger" style="width:auto;padding:5px 15px;font-size:12px;margin-left:auto" onclick="clearSites()">Clear</button></h3>
+                    <table class="data-table" id="sitesTable"><thead><tr><th>ID</th><th>Client Name</th><th>Location</th><th>Contact</th><th>Manning</th></tr></thead><tbody></tbody></table>
                 </div>
-                
-                <!-- EMPLOYEES IMPORT -->
                 <div class="import-box">
                     <h4>📥 Import Employees</h4>
-                    <p>Upload CSV or JSON file with columns: EmpID, Name, Designation, Site, Status</p>
+                    <p>CSV columns: empId, name, designation, siteId, status</p>
                     <input type="file" id="empsFile" accept=".csv,.json" onchange="importEmployees(event)">
-                    <label for="empsFile">📁 Choose File</label>
-                    <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:5px" onclick="downloadEmpsTemplate()">📄 Download Template</button>
+                    <label for="empsFile">📁 Upload Employees</label>
+                    <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:5px" onclick="downloadEmpsTemplate()">📄 Template</button>
                 </div>
-                
                 <div class="section-box">
-                    <h3>👥 Employees (<span id="empCount">0</span>)
-                        <button class="btn btn-danger" style="width:auto;padding:5px 15px;font-size:12px;margin-left:auto" onclick="clearEmployees()">Clear All</button>
-                    </h3>
-                    <div style="overflow-x:auto;">
-                        <table class="data-table" id="empsTable">
-                            <thead><tr><th>ID</th><th>Name</th><th>Designation</th><th>Site</th><th>Status</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                    <h3>👥 Employees (<span id="empCount">0</span>) <button class="btn btn-danger" style="width:auto;padding:5px 15px;font-size:12px;margin-left:auto" onclick="clearEmployees()">Clear</button></h3>
+                    <table class="data-table" id="empsTable"><thead><tr><th>ID</th><th>Name</th><th>Designation</th><th>Site</th><th>Status</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
         </main>
@@ -261,11 +231,11 @@
         <div class="modal">
             <div class="modal-header">
                 <div class="modal-title"><span id="rptIcon">📝</span> <span id="rptTitle">Report</span></div>
-                <button class="modal-close" onclick="hideModal('reportModal')">×</button>
+                <button class="modal-close" onclick="hideModal()">×</button>
             </div>
             <div class="modal-body" id="reportFormBody"></div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal('reportModal')">Cancel</button>
+                <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="submitReport()">✓ Submit Report</button>
             </div>
         </div>
@@ -275,23 +245,100 @@
 
 <script>
 const API = '';
+
+// EXACT report definitions matching your company templates
 const REPORTS = [
-    { id: 'site_survey', name: 'Site Survey Summary', icon: '🏢', desc: 'Site visit tracking' },
-    { id: 'customer_feedback', name: 'Customer Feedback', icon: '⭐', desc: 'Client satisfaction forms' },
-    { id: 'collection_report', name: 'Collection Report', icon: '💰', desc: 'Payment collections' },
-    { id: 'sales_leads', name: 'Sales Reference', icon: '📈', desc: 'New business leads' },
-    { id: 'night_patrolling', name: 'Night Patrolling', icon: '🌙', desc: 'Patrolling roster' },
+    { id: 'site_survey', name: 'Site Survey Summary', icon: '🏢', desc: 'Site visit tracking with manning details' },
+    { id: 'customer_feedback', name: 'Customer Feedback Form', icon: '⭐', desc: 'Client satisfaction certification' },
+    { id: 'collection_report', name: 'Collection Report', icon: '💰', desc: 'Payment collections tracking' },
+    { id: 'sales_leads', name: 'Sales Reference Report', icon: '📈', desc: 'New business leads & proposals' },
+    { id: 'night_patrolling', name: 'Night Patrolling Roster', icon: '🌙', desc: 'Monthly patrolling calendar' },
     { id: 'training_summary', name: 'Training Summary', icon: '🎓', desc: 'Staff training records' },
-    { id: 'complaints', name: 'Complaints Login', icon: '⚠️', desc: 'Issue tracking' },
-    { id: 'accommodation', name: 'Accommodation Inspection', icon: '🏠', desc: 'Staff housing checks' },
-    { id: 'mobilization', name: 'Mobilization Report', icon: '👥', desc: 'Staff deployment' },
-    { id: 'disciplinary', name: 'Disciplinary Actions', icon: '🛡️', desc: 'Warnings & fines' }
+    { id: 'complaints', name: 'Complaints Login Report', icon: '⚠️', desc: 'Complaint tracking & resolution' },
+    { id: 'accommodation', name: 'Accommodation Inspection', icon: '🏠', desc: 'Staff housing inspections' },
+    { id: 'mobilization', name: 'Mobilization & Demobilization', icon: '👥', desc: 'Staff deployment tracking' }
 ];
 
-let user = null, sites = [], employees = [], reports = [];
-let currentReport = null, formData = { entries: [] };
+// EXACT field configurations matching your templates
+const REPORT_FIELDS = {
+    site_survey: [
+        { k: 'date', l: 'Date', t: 'date' },
+        { k: 'clientName', l: 'Client Name', t: 'site' },
+        { k: 'location', l: 'Location', t: 'text' },
+        { k: 'manningRequired', l: 'Manning Required', t: 'number' },
+        { k: 'contactPerson', l: 'Contact Person', t: 'text' },
+        { k: 'surveyDoneBy', l: 'Survey Done By', t: 'text' }
+    ],
+    customer_feedback: [
+        { k: 'date', l: 'Dated', t: 'date' },
+        { k: 'client', l: 'Client', t: 'site' },
+        { k: 'location', l: 'Location', t: 'text' },
+        { k: 'serviceType', l: 'Type of Service', t: 'select', o: ['Security Guard Services', 'Cleaning Services', 'Office Support Services', 'Others'] },
+        { k: 'month', l: 'Month', t: 'text' },
+        { k: 'personnel', l: 'No. of Personnel', t: 'number' },
+        { k: 'assessment', l: 'Assessment', t: 'select', o: ['Satisfied', 'Good', 'Outstanding'] },
+        { k: 'comments', l: 'Comments/Suggestions', t: 'textarea' },
+        { k: 'signatureName', l: 'Signature Name', t: 'text' },
+        { k: 'designation', l: 'Designation', t: 'text' }
+    ],
+    collection_report: [
+        { k: 'date', l: 'Payment Collected Date', t: 'date' },
+        { k: 'clientName', l: 'Client Name', t: 'site' },
+        { k: 'invoiceNo', l: 'Invoice No', t: 'text' },
+        { k: 'paymentMode', l: 'Mode of Payment', t: 'select', o: ['Cash', 'Cheque', 'Bank Transfer'] },
+        { k: 'amount', l: 'Amount (AED)', t: 'number' }
+    ],
+    sales_leads: [
+        { k: 'status', l: 'Status', t: 'select', o: ['Open', 'Won', 'Lost', 'Follow-up'] },
+        { k: 'sourceDate', l: 'Source Date', t: 'date' },
+        { k: 'clientType', l: 'Client Type', t: 'select', o: ['New', 'Existing'] },
+        { k: 'leadInformedTo', l: 'Lead Informed To', t: 'text' },
+        { k: 'clientName', l: 'Client Name', t: 'text' },
+        { k: 'contactPerson', l: 'Contact Person', t: 'text' },
+        { k: 'quantity', l: 'Quantity', t: 'text' },
+        { k: 'serviceType', l: 'Type of Service', t: 'select', o: ['Annual Contract', 'Event Security', 'Cleaning', 'Office Support', 'Others'] },
+        { k: 'closingDate', l: 'Closing Date', t: 'date' },
+        { k: 'description', l: 'Sales Activity Description', t: 'textarea' }
+    ],
+    training_summary: [
+        { k: 'date', l: 'Date', t: 'date' },
+        { k: 'time', l: 'Time', t: 'time' },
+        { k: 'clientName', l: 'Client Name', t: 'site' },
+        { k: 'location', l: 'Location', t: 'text' },
+        { k: 'trainingType', l: 'Training Type', t: 'text' },
+        { k: 'countAttended', l: 'Count Attended', t: 'number' }
+    ],
+    complaints: [
+        { k: 'date', l: 'Date', t: 'date' },
+        { k: 'clientName', l: 'Client Name', t: 'site' },
+        { k: 'nature', l: 'Nature of Complaint', t: 'textarea' },
+        { k: 'personsInvolved', l: 'Persons Involved', t: 'text' },
+        { k: 'courseOfAction', l: 'Course of Action', t: 'textarea' },
+        { k: 'status', l: 'Status', t: 'select', o: ['Open', 'In Progress', 'Resolved', 'Escalated'] },
+        { k: 'supervisorName', l: 'Supervisor Name', t: 'text' },
+        { k: 'clientSatisfied', l: 'Client Satisfied', t: 'select', o: ['Satisfied', 'Not Satisfied', 'Pending'] }
+    ],
+    accommodation: [
+        { k: 'date', l: 'Inspection Carried Date', t: 'date' },
+        { k: 'inspectionDoneBy', l: 'Inspection Done By', t: 'text' },
+        { k: 'location', l: 'Location', t: 'text' },
+        { k: 'remarks', l: 'Remarks', t: 'textarea' }
+    ],
+    mobilization: [
+        { k: 'actionType', l: 'Action Type', t: 'select', o: ['Mobilization', 'Demobilization'] },
+        { k: 'date', l: 'Date', t: 'date' },
+        { k: 'clientName', l: 'Client Name', t: 'site' },
+        { k: 'location', l: 'Location', t: 'text' },
+        { k: 'serviceType', l: 'Type of Service', t: 'text' },
+        { k: 'guardsMale', l: 'Guards (Male)', t: 'number' },
+        { k: 'guardsFemale', l: 'Guards (Female)', t: 'number' },
+        { k: 'remarks', l: 'Remarks', t: 'text' }
+    ]
+};
 
-// Initialize
+let user = null, sites = [], employees = [], reports = [];
+let currentReport = null, formData = { entries: [], patrolDays: [] };
+
 document.addEventListener('DOMContentLoaded', () => {
     const saved = sessionStorage.getItem('hawk_user');
     if (saved) { user = JSON.parse(saved); showApp(); }
@@ -305,19 +352,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// API Helper
 async function api(endpoint, method = 'GET', data = null) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (data) opts.body = JSON.stringify(data);
     const res = await fetch(API + endpoint, opts);
     return res.json();
-}
-
-// Auth Functions
-function showLoginTab(tab) {
-    document.querySelectorAll('.login-tab').forEach((t, i) => t.classList.toggle('active', (tab === 'login' ? i === 0 : i === 1)));
-    document.getElementById('loginPane').classList.toggle('hidden', tab !== 'login');
-    document.getElementById('registerPane').classList.toggle('hidden', tab === 'login');
 }
 
 async function doLogin() {
@@ -329,22 +368,6 @@ async function doLogin() {
         if (res.error) showMsg('loginMsg', res.error, 'error');
         else { user = res.user; sessionStorage.setItem('hawk_user', JSON.stringify(user)); showApp(); toast('Welcome, ' + user.name, 'success'); }
     } catch (e) { showMsg('loginMsg', 'Connection error', 'error'); }
-}
-
-async function doRegister() {
-    const empId = document.getElementById('regId').value.trim();
-    const name = document.getElementById('regName').value.trim();
-    const role = document.getElementById('regRole').value;
-    const password = document.getElementById('regPw').value;
-    const pw2 = document.getElementById('regPw2').value;
-    if (!empId || !name || !password) { showMsg('regMsg', 'Fill all required fields', 'error'); return; }
-    if (password.length < 6) { showMsg('regMsg', 'Password min 6 characters', 'error'); return; }
-    if (password !== pw2) { showMsg('regMsg', 'Passwords do not match', 'error'); return; }
-    try {
-        const res = await api('/api/auth/register', 'POST', { empId, name, role, password });
-        if (res.error) showMsg('regMsg', res.error, 'error');
-        else { showMsg('regMsg', 'Account created! You can now login.', 'success'); setTimeout(() => showLoginTab('login'), 1500); }
-    } catch (e) { showMsg('regMsg', 'Connection error', 'error'); }
 }
 
 function doLogout() { if (confirm('Logout?')) { user = null; sessionStorage.removeItem('hawk_user'); location.reload(); } }
@@ -368,7 +391,9 @@ async function loadData() {
         sites = sitesRes || [];
         employees = empsRes || [];
         reports = reportsRes || [];
-        document.getElementById('periodLabel').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const now = new Date();
+        document.getElementById('periodLabel').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        document.getElementById('currentMonth').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         updateDashboard();
         updateTables();
         renderReports();
@@ -380,17 +405,17 @@ async function loadData() {
 async function loadManagement() {
     try {
         const stats = await api('/api/reports/stats');
-        document.getElementById('mgrTotalReports').textContent = stats.totalReports;
-        document.getElementById('mgrSupervisors').textContent = stats.totalSupervisors;
+        document.getElementById('mgrTotalReports').textContent = stats.totalReports || 0;
+        document.getElementById('mgrSupervisors').textContent = stats.totalSupervisors || 0;
         let html = '<table class="data-table"><thead><tr><th>Supervisor</th><th>Submitted</th><th>Pending</th></tr></thead><tbody>';
         for (const [id, data] of Object.entries(stats.bySupervisor || {})) {
-            html += `<tr><td>${data.name}</td><td>${data.reports.length}/10</td><td>${10 - data.reports.length}</td></tr>`;
+            html += `<tr><td>${data.name}</td><td>${data.reports.length}/9</td><td>${9 - data.reports.length}</td></tr>`;
         }
         html += '</tbody></table>';
-        document.getElementById('supervisorBreakdown').innerHTML = html || '<p>No reports yet</p>';
+        document.getElementById('supervisorBreakdown').innerHTML = html;
         const allReports = await api('/api/reports');
         let rptHtml = '<table class="data-table"><thead><tr><th>Report</th><th>Supervisor</th><th>Date</th></tr></thead><tbody>';
-        allReports.slice(0, 50).forEach(r => {
+        (allReports || []).slice(0, 50).forEach(r => {
             const rt = REPORTS.find(x => x.id === r.reportType);
             rptHtml += `<tr><td>${rt ? rt.icon + ' ' + rt.name : r.reportType}</td><td>${r.supervisorName}</td><td>${new Date(r.submittedAt).toLocaleDateString()}</td></tr>`;
         });
@@ -401,26 +426,27 @@ async function loadManagement() {
 
 function updateTables() {
     document.querySelector('#sitesTable tbody').innerHTML = sites.map(s => 
-        `<tr><td>${s.siteId || s.id}</td><td>${s.name || s.client}</td><td>${s.location || '-'}</td><td>${s.type || '-'}</td><td>${s.contactPerson || '-'}</td></tr>`
-    ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No sites - Import from CSV/JSON above</td></tr>';
+        `<tr><td>${s.siteId || s.id}</td><td>${s.name || s.client}</td><td>${s.location || '-'}</td><td>${s.contactPerson || '-'}</td><td>${s.manningRequired || '-'}</td></tr>`
+    ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No sites imported yet</td></tr>';
     document.getElementById('siteCount').textContent = sites.length;
     
     document.querySelector('#empsTable tbody').innerHTML = employees.map(e => 
-        `<tr><td>${e.empId || e.id}</td><td>${e.name}</td><td>${e.type || e.designation || '-'}</td><td>${e.siteId || e.site || '-'}</td><td>${e.status || 'Active'}</td></tr>`
-    ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No employees - Import from CSV/JSON above</td></tr>';
+        `<tr><td>${e.empId || e.id}</td><td>${e.name}</td><td>${e.type || e.designation || '-'}</td><td>${e.siteId || '-'}</td><td>${e.status || 'Active'}</td></tr>`
+    ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No employees imported yet</td></tr>';
     document.getElementById('empCount').textContent = employees.length;
 }
 
 function updateDashboard() {
     const now = new Date(), m = now.getMonth() + 1, y = now.getFullYear();
     const done = reports.filter(r => r.periodMonth === m && r.periodYear === y).map(r => r.reportType);
-    document.getElementById('statCompleted').textContent = done.length + '/10';
-    document.getElementById('progressBar').style.width = (done.length * 10) + '%';
+    const total = REPORTS.length;
+    document.getElementById('statCompleted').textContent = done.length + '/' + total;
+    document.getElementById('progressBar').style.width = (done.length / total * 100) + '%';
     document.getElementById('statSites').textContent = sites.length;
     document.getElementById('statEmps').textContent = employees.length;
     const deadline = new Date(y, m, 5);
     document.getElementById('statDays').textContent = Math.max(0, Math.ceil((deadline - now) / 86400000));
-    document.getElementById('pendingGrid').innerHTML = REPORTS.filter(r => !done.includes(r.id)).slice(0, 4).map(r => reportCard(r, false)).join('');
+    document.getElementById('pendingGrid').innerHTML = REPORTS.filter(r => !done.includes(r.id)).map(r => reportCard(r, false)).join('');
 }
 
 function renderReports() {
@@ -434,20 +460,19 @@ function reportCard(r, isDone) {
         <div class="report-icon" style="background:${isDone ? '#D1FAE5' : '#FEF3C7'}">${r.icon}</div>
         <div class="report-title">${r.name}</div>
         <div class="report-desc">${r.desc}</div>
-        <span class="report-status ${isDone ? 'completed' : 'pending'}">${isDone ? '✓ Done' : '⏳ Pending'}</span>
+        <span class="report-status ${isDone ? 'completed' : 'pending'}">${isDone ? '✓ Submitted' : '⏳ Pending'}</span>
     </div>`;
 }
 
 function renderHistory() {
     if (!reports.length) { document.getElementById('historyList').innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px">No reports submitted yet</p>'; return; }
     const sorted = [...reports].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-    document.getElementById('historyList').innerHTML = `<div class="section-box"><table class="data-table"><thead><tr><th>Report</th><th>Period</th><th>Date</th></tr></thead><tbody>
+    document.getElementById('historyList').innerHTML = `<div class="section-box"><table class="data-table"><thead><tr><th>Report</th><th>Period</th><th>Submitted</th></tr></thead><tbody>
         ${sorted.map(r => { const rt = REPORTS.find(x => x.id === r.reportType); return `<tr><td>${rt ? rt.icon + ' ' + rt.name : r.reportType}</td><td>${r.periodLabel || ''}</td><td>${new Date(r.submittedAt).toLocaleDateString()}</td></tr>`; }).join('')}
     </tbody></table></div>`;
 }
 
-// ==================== IMPORT FUNCTIONS ====================
-
+// ===== IMPORT FUNCTIONS =====
 function parseCSV(text) {
     const lines = text.trim().split('\n');
     if (lines.length < 2) return [];
@@ -461,17 +486,11 @@ function parseCSV(text) {
 }
 
 async function importSites(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const file = event.target.files[0]; if (!file) return;
     try {
         const text = await file.text();
-        let data;
-        if (file.name.endsWith('.json')) {
-            data = JSON.parse(text);
-            if (!Array.isArray(data)) data = data.sites || [data];
-        } else {
-            data = parseCSV(text);
-        }
+        let data = file.name.endsWith('.json') ? JSON.parse(text) : parseCSV(text);
+        if (!Array.isArray(data)) data = data.sites || [data];
         const res = await api('/api/sites/import', 'POST', { sites: data, replace: false });
         if (res.error) toast(res.error, 'error');
         else { toast(`Imported ${res.imported} sites!`, 'success'); loadData(); }
@@ -480,17 +499,11 @@ async function importSites(event) {
 }
 
 async function importEmployees(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const file = event.target.files[0]; if (!file) return;
     try {
         const text = await file.text();
-        let data;
-        if (file.name.endsWith('.json')) {
-            data = JSON.parse(text);
-            if (!Array.isArray(data)) data = data.employees || [data];
-        } else {
-            data = parseCSV(text);
-        }
+        let data = file.name.endsWith('.json') ? JSON.parse(text) : parseCSV(text);
+        if (!Array.isArray(data)) data = data.employees || [data];
         const res = await api('/api/employees/import', 'POST', { employees: data, replace: false });
         if (res.error) toast(res.error, 'error');
         else { toast(`Imported ${res.imported} employees!`, 'success'); loadData(); }
@@ -499,140 +512,80 @@ async function importEmployees(event) {
 }
 
 function downloadSitesTemplate() {
-    const csv = 'siteId,name,client,location,type,contactPerson,manningRequired\nSITE001,Dubai Mall,Emaar Properties,Downtown Dubai,Mall,John Smith,10\nSITE002,Intercontinental Hotel,IHG Group,Festival City,Hotel,Jane Doe,5';
-    downloadFile('sites_template.csv', csv);
+    downloadFile('sites_template.csv', 'siteId,name,location,contactPerson,manningRequired\nSITE001,Dubai Mall,Downtown Dubai,John Smith,10\nSITE002,Intercontinental Hotel,Festival City,Jane Doe,5');
 }
 
 function downloadEmpsTemplate() {
-    const csv = 'empId,name,type,siteId,status,phone\nEMP001,Ahmed Hassan,Security Guard,SITE001,Active,+971501234567\nEMP002,Mohammed Ali,Cleaner,SITE002,Active,+971507654321';
-    downloadFile('employees_template.csv', csv);
+    downloadFile('employees_template.csv', 'empId,name,type,siteId,status\nEMP001,Ahmed Hassan,Security Guard,SITE001,Active\nEMP002,Mohammed Ali,Cleaner,SITE002,Active');
 }
 
 function downloadFile(filename, content) {
-    const blob = new Blob([content], { type: 'text/csv' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: 'text/csv' })); a.download = filename; a.click();
 }
 
-async function clearSites() {
-    if (!confirm('Delete ALL sites? This cannot be undone.')) return;
-    await api('/api/sites/all', 'DELETE');
-    toast('All sites cleared', 'success');
-    loadData();
-}
+async function clearSites() { if (confirm('Delete ALL sites?')) { await api('/api/sites/all', 'DELETE'); toast('Sites cleared', 'success'); loadData(); } }
+async function clearEmployees() { if (confirm('Delete ALL employees?')) { await api('/api/employees/all', 'DELETE'); toast('Employees cleared', 'success'); loadData(); } }
 
-async function clearEmployees() {
-    if (!confirm('Delete ALL employees? This cannot be undone.')) return;
-    await api('/api/employees/all', 'DELETE');
-    toast('All employees cleared', 'success');
-    loadData();
-}
-
-// ==================== REPORT FORM ====================
-
+// ===== REPORT FORM =====
 function openReport(id) {
     currentReport = REPORTS.find(r => r.id === id);
     if (!currentReport) return;
-    formData = { entries: [{}] };
+    formData = { entries: [{}], patrolDays: [] };
     document.getElementById('rptIcon').textContent = currentReport.icon;
     document.getElementById('rptTitle').textContent = currentReport.name + ' - ' + new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     renderReportForm();
-    showModal('reportModal');
+    document.getElementById('reportModal').classList.add('active');
 }
 
-function getFieldsForReport(id) {
-    const configs = {
-        site_survey: [
-            { k: 'date', l: 'Date', t: 'date' },
-            { k: 'clientName', l: 'Client Name', t: 'site' },
-            { k: 'location', l: 'Location', t: 'text' },
-            { k: 'manningRequired', l: 'Manning Required', t: 'number' },
-            { k: 'contactPerson', l: 'Contact Person', t: 'text' },
-            { k: 'surveyDoneBy', l: 'Survey Done By', t: 'text' }
-        ],
-        customer_feedback: [
-            { k: 'date', l: 'Date', t: 'date' },
-            { k: 'clientName', l: 'Client', t: 'site' },
-            { k: 'location', l: 'Location', t: 'text' },
-            { k: 'serviceType', l: 'Service Type', t: 'select', o: ['Security Guard Services', 'Cleaning Services', 'Office Support Services', 'Others'] },
-            { k: 'personnel', l: 'No. of Personnel', t: 'number' },
-            { k: 'assessment', l: 'Assessment', t: 'select', o: ['Satisfied', 'Good', 'Outstanding'] },
-            { k: 'comments', l: 'Comments', t: 'text' }
-        ],
-        collection_report: [
-            { k: 'date', l: 'Collection Date', t: 'date' },
-            { k: 'clientName', l: 'Client Name', t: 'site' },
-            { k: 'invoiceNo', l: 'Invoice No', t: 'text' },
-            { k: 'paymentMode', l: 'Payment Mode', t: 'select', o: ['Cash', 'Cheque', 'Bank Transfer', 'Online'] },
-            { k: 'amount', l: 'Amount (AED)', t: 'number' }
-        ],
-        sales_leads: [
-            { k: 'sourceDate', l: 'Source Date', t: 'date' },
-            { k: 'clientName', l: 'Client Name', t: 'text' },
-            { k: 'contactPerson', l: 'Contact Person', t: 'text' },
-            { k: 'quantity', l: 'Quantity/Guards', t: 'text' },
-            { k: 'serviceType', l: 'Type of Service', t: 'select', o: ['Annual Contract', 'Event Security', 'Cleaning', 'Others'] },
-            { k: 'status', l: 'Status', t: 'select', o: ['Open', 'Won', 'Lost', 'Follow-up'] },
-            { k: 'description', l: 'Activity Description', t: 'textarea' }
-        ],
-        night_patrolling: [
-            { k: 'date', l: 'Date', t: 'date' },
-            { k: 'site', l: 'Site', t: 'site' },
-            { k: 'timeIn', l: 'Time In', t: 'time' },
-            { k: 'timeOut', l: 'Time Out', t: 'time' },
-            { k: 'findings', l: 'Findings', t: 'select', o: ['All Clear', 'Minor Issue', 'Major Issue'] },
-            { k: 'remarks', l: 'Remarks', t: 'text' }
-        ],
-        training_summary: [
-            { k: 'date', l: 'Date', t: 'date' },
-            { k: 'time', l: 'Time', t: 'time' },
-            { k: 'clientName', l: 'Client Name', t: 'site' },
-            { k: 'location', l: 'Location', t: 'text' },
-            { k: 'trainingType', l: 'Training Type', t: 'select', o: ['Fire Safety', 'First Aid', 'Security Procedures', 'Customer Service', 'Health & Safety', 'Others'] },
-            { k: 'attendees', l: 'Count Attended', t: 'number' }
-        ],
-        complaints: [
-            { k: 'date', l: 'Date', t: 'date' },
-            { k: 'clientName', l: 'Client Name', t: 'site' },
-            { k: 'nature', l: 'Nature of Complaint', t: 'select', o: ['Service Quality', 'Staff Behavior', 'Attendance', 'Safety', 'Others'] },
-            { k: 'personsInvolved', l: 'Persons Involved', t: 'text' },
-            { k: 'action', l: 'Course of Action', t: 'textarea' },
-            { k: 'status', l: 'Status', t: 'select', o: ['Open', 'In Progress', 'Closed'] },
-            { k: 'clientSatisfied', l: 'Client Satisfied?', t: 'select', o: ['Yes', 'No', 'Pending'] }
-        ],
-        accommodation: [
-            { k: 'date', l: 'Inspection Date', t: 'date' },
-            { k: 'inspectionBy', l: 'Inspection Done By', t: 'text' },
-            { k: 'location', l: 'Location', t: 'text' },
-            { k: 'remarks', l: 'Remarks', t: 'textarea' }
-        ],
-        mobilization: [
-            { k: 'actionType', l: 'Action Type', t: 'select', o: ['Mobilization', 'Demobilization'] },
-            { k: 'date', l: 'Date', t: 'date' },
-            { k: 'clientName', l: 'Client Name', t: 'site' },
-            { k: 'location', l: 'Location', t: 'text' },
-            { k: 'serviceType', l: 'Type of Service', t: 'select', o: ['Security Guard', 'Cleaning', 'Office Support', 'Others'] },
-            { k: 'guardsMale', l: 'Guards (Male)', t: 'number' },
-            { k: 'guardsFemale', l: 'Guards (Female)', t: 'number' },
-            { k: 'remarks', l: 'Remarks', t: 'text' }
-        ],
-        disciplinary: [
-            { k: 'date', l: 'Date', t: 'date' },
-            { k: 'employeeName', l: 'Employee Name', t: 'employee' },
-            { k: 'site', l: 'Site', t: 'site' },
-            { k: 'actionType', l: 'Action Type', t: 'select', o: ['Verbal Warning', 'Written Warning', 'Fine', 'Suspension', 'Termination'] },
-            { k: 'reason', l: 'Reason', t: 'textarea' },
-            { k: 'amount', l: 'Fine Amount (AED)', t: 'number' }
-        ]
-    };
-    return configs[id] || configs.site_survey;
-}
+function hideModal() { document.getElementById('reportModal').classList.remove('active'); }
 
 function renderReportForm() {
-    const fields = getFieldsForReport(currentReport.id);
-    let html = `<p style="margin-bottom:15px;color:var(--text-muted)">Fill in the details for this month's report. Add multiple entries if needed.</p>`;
+    // Special case for Night Patrolling - calendar format
+    if (currentReport.id === 'night_patrolling') {
+        renderPatrollingForm();
+        return;
+    }
+    
+    const fields = REPORT_FIELDS[currentReport.id] || [];
+    let html = `<p style="margin-bottom:15px;color:var(--text-muted)">Fill in the entries for this month's ${currentReport.name}.</p>`;
     html += `<div id="entriesContainer">${formData.entries.map((e, i) => entryRow(fields, e, i)).join('')}</div>`;
     html += `<button class="add-entry-btn" onclick="addEntry()">+ Add Another Entry</button>`;
     document.getElementById('reportFormBody').innerHTML = html;
+}
+
+function renderPatrollingForm() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    let html = `<p style="margin-bottom:15px;color:var(--text-muted)">Click on days you performed night patrolling this month.</p>`;
+    html += `<div class="form-group"><label>Site</label><select id="patrolSite" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px">
+        <option value="">-- Select Site --</option>
+        ${sites.map(s => `<option value="${s.name || s.client}">${s.name || s.client}</option>`).join('')}
+    </select></div>`;
+    html += `<div class="patrol-grid">`;
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        const dayName = dayNames[date.getDay()];
+        const checked = formData.patrolDays.includes(d) ? 'checked' : '';
+        html += `<div class="patrol-day ${checked}" onclick="togglePatrolDay(${d})">
+            <span class="day-num">${d}</span>
+            <span class="day-name">${dayName}</span>
+        </div>`;
+    }
+    html += `</div>`;
+    html += `<p style="margin-top:15px;font-size:13px;color:var(--text-muted)">Total days: <strong id="patrolCount">${formData.patrolDays.length}</strong></p>`;
+    document.getElementById('reportFormBody').innerHTML = html;
+}
+
+function togglePatrolDay(day) {
+    const idx = formData.patrolDays.indexOf(day);
+    if (idx >= 0) formData.patrolDays.splice(idx, 1);
+    else formData.patrolDays.push(day);
+    formData.patrolDays.sort((a, b) => a - b);
+    renderPatrollingForm();
 }
 
 function entryRow(fields, data, idx) {
@@ -641,11 +594,9 @@ function entryRow(fields, data, idx) {
         const val = data[f.k] || '';
         html += `<div><label>${f.l}</label>`;
         if (f.t === 'select') {
-            html += `<select onchange="updateEntry(${idx},'${f.k}',this.value)"><option value="">-- Select --</option>${f.o.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+            html += `<select onchange="updateEntry(${idx},'${f.k}',this.value)"><option value="">Select</option>${f.o.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
         } else if (f.t === 'site') {
-            html += `<select onchange="updateEntry(${idx},'${f.k}',this.value)"><option value="">-- Select Site --</option>${sites.map(s => `<option value="${s.name || s.client}" ${val === (s.name || s.client) ? 'selected' : ''}>${s.name || s.client}</option>`).join('')}</select>`;
-        } else if (f.t === 'employee') {
-            html += `<select onchange="updateEntry(${idx},'${f.k}',this.value)"><option value="">-- Select Employee --</option>${employees.map(e => `<option value="${e.name}" ${val === e.name ? 'selected' : ''}>${e.name}</option>`).join('')}</select>`;
+            html += `<select onchange="updateEntry(${idx},'${f.k}',this.value)"><option value="">Select Site</option>${sites.map(s => `<option value="${s.name || s.client}" ${val === (s.name || s.client) ? 'selected' : ''}>${s.name || s.client}</option>`).join('')}</select>`;
         } else if (f.t === 'textarea') {
             html += `<textarea rows="2" onchange="updateEntry(${idx},'${f.k}',this.value)">${val}</textarea>`;
         } else {
@@ -653,7 +604,7 @@ function entryRow(fields, data, idx) {
         }
         html += '</div>';
     });
-    html += `<div style="display:flex;align-items:end"><button class="remove-btn" onclick="removeEntry(${idx})">✕</button></div></div>`;
+    html += `<div><label>&nbsp;</label><button class="remove-btn" onclick="removeEntry(${idx})">✕ Remove</button></div></div>`;
     return html;
 }
 
@@ -662,50 +613,52 @@ function addEntry() { formData.entries.push({}); renderReportForm(); }
 function removeEntry(idx) { if (formData.entries.length > 1) { formData.entries.splice(idx, 1); renderReportForm(); } }
 
 async function submitReport() {
-    const validEntries = formData.entries.filter(e => Object.values(e).some(v => v && v.toString().trim()));
-    if (!validEntries.length) { toast('Add at least one entry with data', 'warning'); return; }
+    let reportData;
+    
+    if (currentReport.id === 'night_patrolling') {
+        const site = document.getElementById('patrolSite')?.value;
+        if (!site) { toast('Please select a site', 'warning'); return; }
+        if (formData.patrolDays.length === 0) { toast('Please mark at least one patrol day', 'warning'); return; }
+        reportData = { site, patrolDays: formData.patrolDays, totalDays: formData.patrolDays.length };
+    } else {
+        const validEntries = formData.entries.filter(e => Object.values(e).some(v => v && v.toString().trim()));
+        if (!validEntries.length) { toast('Add at least one entry', 'warning'); return; }
+        reportData = { entries: validEntries };
+    }
     
     const now = new Date();
     const payload = {
         reportType: currentReport.id,
         period: { month: now.getMonth() + 1, year: now.getFullYear(), label: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) },
         supervisor: { empId: user.empId, name: user.name },
-        data: { entries: validEntries, submittedBy: user.name, submittedAt: now.toISOString() }
+        data: reportData
     };
     
     try {
         const res = await api('/api/reports', 'POST', payload);
         if (res.error) { toast(res.error, 'error'); return; }
-        toast('Report submitted successfully!', 'success');
-        hideModal('reportModal');
+        toast('Report submitted!', 'success');
+        hideModal();
         loadData();
     } catch (e) { toast('Submission failed', 'error'); }
 }
 
-// ==================== EXPORT ====================
-
 async function exportData() {
     try {
         const backup = await api('/api/backup');
-        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
         a.download = `hawk_backup_${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         toast('Backup exported', 'success');
     } catch (e) { toast('Export failed', 'error'); }
 }
 
-// ==================== UTILITIES ====================
-
-function showModal(id) { document.getElementById(id).classList.add('active'); }
-function hideModal(id) { document.getElementById(id).classList.remove('active'); }
 function toast(msg, type = 'info') {
-    const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
     t.className = 'toast ' + type;
     t.textContent = msg;
-    c.appendChild(t);
+    document.getElementById('toastContainer').appendChild(t);
     setTimeout(() => t.remove(), 3500);
 }
 </script>
