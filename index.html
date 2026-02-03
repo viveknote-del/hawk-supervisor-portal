@@ -3,476 +3,831 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hawk Security - Supervisor Portal v3</title>
+    <title>Hawk Security - Supervisor Portal v4</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        :root{--hawk-red:#C41E3A;--hawk-red-dark:#9B1B2F;--hawk-blue:#1B4F8C;--hawk-gold:#D4A017;--surface:#FFF;--surface-alt:#F8F9FA;--text:#1A1A2E;--text-muted:#718096;--border:#E2E8F0;--success:#059669;--warning:#D97706;--error:#DC2626}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#fef2f2,#fff7ed,#fefce8);min-height:100vh;color:var(--text)}
-        .login-container{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-        .login-box{background:#fff;border-radius:20px;box-shadow:0 25px 50px rgba(196,30,58,0.2);width:100%;max-width:420px;overflow:hidden;border:3px solid var(--hawk-gold)}
-        .login-header{background:linear-gradient(135deg,#C41E3A,#9B1B2F);padding:30px;text-align:center;color:#fff}
-        .login-logo{width:100px;height:100px;margin:0 auto 15px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:50px;overflow:hidden}
-        .login-logo img{width:95%;height:95%;object-fit:contain}
-        .login-title{font-size:20px;font-weight:700}
-        .login-subtitle{font-size:12px;opacity:0.9;margin-top:5px}
+        :root{--hawk-red:#C41E3A;--hawk-dark:#9B1B2F;--hawk-blue:#1B4F8C;--hawk-gold:#D4A017;--bg:#F8FAFC;--surface:#FFF;--text:#1E293B;--muted:#64748B;--border:#E2E8F0;--success:#059669;--warning:#D97706;--error:#DC2626}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}
+        
+        /* Login */
+        .login-container{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#fef2f2,#fff7ed)}
+        .login-box{background:#fff;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,0.1);width:100%;max-width:400px;overflow:hidden}
+        .login-header{background:linear-gradient(135deg,var(--hawk-red),var(--hawk-dark));padding:30px;text-align:center;color:#fff}
+        .login-logo{font-size:48px;margin-bottom:10px}
+        .login-title{font-size:18px;font-weight:700}
         .login-form{padding:25px}
-        .form-group{margin-bottom:18px}
-        .form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
-        .form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:15px}
-        .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--hawk-red)}
-        .btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
-        .btn-primary{background:linear-gradient(135deg,#C41E3A,#9B1B2F);color:#fff}
-        .btn-primary:hover{box-shadow:0 8px 20px rgba(196,30,58,0.4)}
-        .btn-secondary{background:var(--surface-alt);color:var(--text);border:2px solid var(--border)}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:2px solid var(--border);border-radius:8px;font-size:14px}
+        .form-group input:focus{outline:none;border-color:var(--hawk-red)}
+        .btn{padding:12px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center;transition:all 0.2s}
+        .btn-primary{background:var(--hawk-red);color:#fff;width:100%}
+        .btn-primary:hover{background:var(--hawk-dark)}
+        .btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
         .btn-success{background:var(--success);color:#fff}
-        .btn-danger{background:var(--error);color:#fff}
+        .btn-blue{background:var(--hawk-blue);color:#fff}
+        .btn-sm{padding:8px 14px;font-size:12px}
         .login-footer{text-align:center;padding:15px;background:var(--hawk-blue);color:#fff;font-size:11px}
-        .login-footer a{color:var(--hawk-gold)}
-        .msg{padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;display:none}
+        .msg{padding:10px;border-radius:6px;margin-bottom:12px;font-size:13px;display:none}
         .msg.error{background:#FEF2F2;color:var(--error);display:block}
-        .msg.success{background:#ECFDF5;color:var(--success);display:block}
-        .app-container{display:none;min-height:100vh}
-        .app-header{background:linear-gradient(135deg,#C41E3A,#9B1B2F);padding:12px 20px;position:sticky;top:0;z-index:100}
-        .header-content{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-        .header-brand{display:flex;align-items:center;gap:12px}
-        .header-logo{width:45px;height:45px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden}
-        .header-logo img{width:90%;height:90%;object-fit:contain}
-        .header-title{color:#fff}
-        .header-title h1{font-size:16px}
-        .header-title p{font-size:10px;opacity:0.9}
-        .header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-        .header-btn{padding:8px 12px;border-radius:8px;font-size:12px;cursor:pointer;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff}
-        .header-btn:hover{background:rgba(255,255,255,0.2)}
-        .user-info{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,0.15);border-radius:8px}
-        .user-avatar{width:32px;height:32px;background:var(--hawk-gold);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--hawk-red-dark);font-weight:700;font-size:12px}
-        .user-name{font-size:12px;font-weight:600;color:#fff}
-        .user-role{font-size:10px;color:rgba(255,255,255,0.8)}
-        .nav-tabs{background:var(--hawk-blue);border-bottom:3px solid var(--hawk-gold)}
-        .nav-tabs-inner{max-width:1400px;margin:0 auto;display:flex;gap:5px;padding:0 20px;overflow-x:auto}
-        .nav-tab{padding:12px 18px;font-size:13px;color:rgba(255,255,255,0.8);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;white-space:nowrap;margin-bottom:-3px}
-        .nav-tab:hover{color:#fff}
-        .nav-tab.active{color:var(--hawk-gold);border-bottom-color:var(--hawk-gold)}
-        .main-content{max-width:1400px;margin:0 auto;padding:25px 20px}
+        
+        /* App Layout */
+        .app-container{display:none}
+        .sidebar{width:240px;background:linear-gradient(180deg,var(--hawk-red),var(--hawk-dark));min-height:100vh;position:fixed;left:0;top:0;color:#fff;padding:20px 0}
+        .sidebar-logo{padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,0.1);text-align:center}
+        .sidebar-logo .icon{font-size:36px}
+        .sidebar-logo h2{font-size:14px;margin-top:8px}
+        .sidebar-nav{padding:15px 0}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;color:rgba(255,255,255,0.8);cursor:pointer;font-size:13px;border-left:3px solid transparent}
+        .nav-item:hover{background:rgba(255,255,255,0.1);color:#fff}
+        .nav-item.active{background:rgba(255,255,255,0.15);color:#fff;border-left-color:var(--hawk-gold)}
+        .nav-item .icon{font-size:18px;width:24px}
+        .sidebar-user{position:absolute;bottom:0;left:0;right:0;padding:15px 20px;background:rgba(0,0,0,0.2);display:flex;align-items:center;gap:10px}
+        .user-avatar{width:36px;height:36px;background:var(--hawk-gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--hawk-dark);font-size:12px}
+        .user-details{flex:1}
+        .user-name{font-size:13px;font-weight:600}
+        .user-role{font-size:11px;opacity:0.7}
+        
+        .main-area{margin-left:240px;min-height:100vh}
+        .top-bar{background:#fff;padding:15px 25px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+        .page-title{font-size:18px;font-weight:600;color:var(--hawk-dark)}
+        .top-actions{display:flex;gap:10px;align-items:center}
+        .date-display{font-size:13px;color:var(--muted);padding:8px 12px;background:var(--bg);border-radius:6px}
+        
+        .content{padding:25px}
         .tab-content{display:none}.tab-content.active{display:block}
-        .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:25px}
-        .stat-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.06);border-left:4px solid var(--hawk-red)}
-        .stat-card.primary{background:linear-gradient(135deg,#C41E3A,#9B1B2F);color:#fff;border:none}
-        .stat-card.blue{background:linear-gradient(135deg,#1B4F8C,#153D6B);color:#fff;border:none}
+        
+        /* Dashboard */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:25px}
+        .stat-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+        .stat-card.highlight{background:linear-gradient(135deg,var(--hawk-red),var(--hawk-dark));color:#fff}
+        .stat-card.blue{background:linear-gradient(135deg,var(--hawk-blue),#0F3460);color:#fff}
+        .stat-icon{font-size:24px;margin-bottom:8px}
         .stat-value{font-size:28px;font-weight:700}
-        .stat-label{font-size:13px;opacity:0.8;margin-top:4px}
-        .progress-bar-bg{background:rgba(255,255,255,0.3);height:8px;border-radius:4px;margin-top:12px;overflow:hidden}
-        .progress-bar{height:100%;background:var(--hawk-gold);border-radius:4px}
-        .reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
-        .report-card{background:#fff;border-radius:14px;padding:18px;border:2px solid var(--border);cursor:pointer;position:relative}
-        .report-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--hawk-gold);border-radius:14px 0 0 14px}
-        .report-card:hover{border-color:var(--hawk-red);box-shadow:0 8px 25px rgba(196,30,58,0.15)}
-        .report-card.done{background:var(--surface-alt);opacity:0.7;cursor:default}
-        .report-card.done:hover{box-shadow:none;border-color:var(--border)}
-        .report-card.done::before{background:var(--success)}
-        .report-icon{width:45px;height:45px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px}
-        .report-title{font-size:15px;font-weight:600;color:var(--hawk-red-dark)}
-        .report-desc{font-size:12px;color:var(--text-muted);margin-top:3px}
-        .report-status{display:inline-block;padding:4px 10px;border-radius:15px;font-size:11px;font-weight:600;margin-top:10px}
-        .report-status.pending{background:#FEF3C7;color:#D97706}
-        .report-status.completed{background:#D1FAE5;color:#059669}
-        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+        .stat-label{font-size:12px;opacity:0.8;margin-top:2px}
+        
+        /* Reports Grid */
+        .reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+        .report-card{background:#fff;border-radius:12px;padding:18px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s}
+        .report-card:hover{border-color:var(--hawk-red);box-shadow:0 4px 12px rgba(196,30,58,0.1);transform:translateY(-2px)}
+        .report-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+        .report-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--bg)}
+        .report-title{font-size:14px;font-weight:600;color:var(--hawk-dark)}
+        .report-subtitle{font-size:11px;color:var(--muted)}
+        .report-stats{display:flex;gap:15px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+        .report-stat{text-align:center;flex:1}
+        .report-stat-value{font-size:16px;font-weight:700;color:var(--hawk-blue)}
+        .report-stat-label{font-size:10px;color:var(--muted)}
+        
+        /* Modal */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
         .modal-overlay.active{display:flex}
-        .modal{background:#fff;border-radius:18px;width:100%;max-width:900px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;border:3px solid var(--hawk-gold)}
-        .modal-header{padding:18px;background:linear-gradient(135deg,#C41E3A,#9B1B2F);color:#fff;display:flex;justify-content:space-between;align-items:center}
-        .modal-title{font-size:17px;font-weight:700}
-        .modal-close{width:34px;height:34px;border-radius:8px;border:none;background:rgba(255,255,255,0.2);cursor:pointer;font-size:18px;color:#fff}
+        .modal{background:#fff;border-radius:16px;width:100%;max-width:900px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+        .modal-header{padding:18px 22px;background:var(--hawk-red);color:#fff;display:flex;justify-content:space-between;align-items:center}
+        .modal-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px}
+        .modal-close{width:32px;height:32px;border-radius:6px;border:none;background:rgba(255,255,255,0.2);cursor:pointer;color:#fff;font-size:18px}
         .modal-body{padding:22px;overflow-y:auto;flex:1}
-        .modal-footer{padding:16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:var(--surface-alt)}
-        .modal-footer .btn{width:auto;padding:10px 22px}
-        .section-box{background:#fff;border-radius:14px;padding:22px;margin-bottom:18px;border-top:4px solid var(--hawk-red)}
-        .section-box h3{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);color:var(--hawk-red-dark);font-size:16px;display:flex;align-items:center;gap:10px}
+        .modal-footer{padding:15px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:var(--bg)}
+        
+        /* Entry Form */
+        .entry-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
+        .entry-section{background:var(--bg);border-radius:10px;padding:15px;margin-bottom:15px}
+        .entry-section h4{font-size:13px;color:var(--hawk-blue);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+        .entries-list{margin-top:15px}
+        .entry-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;align-items:end}
+        .entry-item input,.entry-item select,.entry-item textarea{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+        .entry-item label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+        .add-btn{width:100%;padding:12px;border:2px dashed var(--hawk-blue);border-radius:8px;background:#fff;color:var(--hawk-blue);cursor:pointer;font-weight:500}
+        .remove-btn{padding:6px 10px;background:#FEE2E2;color:var(--error);border:none;border-radius:4px;cursor:pointer;font-size:11px}
+        
+        /* View Filters */
+        .view-controls{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+        .view-toggle{display:flex;background:var(--bg);border-radius:8px;padding:4px}
+        .view-btn{padding:8px 16px;border:none;background:none;cursor:pointer;font-size:13px;border-radius:6px;color:var(--muted)}
+        .view-btn.active{background:#fff;color:var(--hawk-red);font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+        .date-filter{display:flex;gap:8px;align-items:center}
+        .date-filter input{padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+        
+        /* Data Table */
+        .data-table-wrapper{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
         .data-table{width:100%;border-collapse:collapse;font-size:13px}
-        .data-table th{background:var(--hawk-blue);color:#fff;padding:10px;text-align:left}
-        .data-table td{padding:10px;border-bottom:1px solid var(--border)}
-        .data-table tr:hover{background:var(--surface-alt)}
-        .import-box{background:linear-gradient(135deg,#fef2f2,#fff7ed);border:2px dashed var(--hawk-red);border-radius:14px;padding:25px;text-align:center;margin-bottom:18px}
-        .import-box h4{color:var(--hawk-red);margin-bottom:10px}
-        .import-box p{color:var(--text-muted);margin-bottom:15px;font-size:13px}
-        .import-box input[type="file"]{display:none}
-        .import-box label{display:inline-block;padding:12px 24px;background:var(--hawk-red);color:#fff;border-radius:8px;cursor:pointer;font-weight:600;margin:5px}
-        .import-box label:hover{background:var(--hawk-red-dark)}
-        .entry-row{background:var(--surface-alt);border-radius:10px;padding:15px;margin-bottom:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end;border-left:3px solid var(--hawk-blue)}
-        .entry-row input,.entry-row select,.entry-row textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px}
-        .entry-row label{font-size:11px;color:var(--text-muted);display:block;margin-bottom:3px}
-        .add-entry-btn{width:100%;padding:12px;background:#fff;border:2px dashed var(--hawk-blue);border-radius:10px;color:var(--hawk-blue);cursor:pointer;font-weight:500}
-        .remove-btn{padding:6px 10px;background:#FEF2F2;color:var(--error);border:none;border-radius:6px;cursor:pointer;font-size:12px}
-        .toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2000}
-        .toast{padding:12px 22px;border-radius:10px;color:#fff;font-weight:500;margin-top:8px;animation:slideUp 0.3s}
-        .toast.success{background:var(--success)}.toast.error{background:var(--error)}.toast.warning{background:var(--warning)}.toast.info{background:var(--hawk-blue)}
-        @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        .hidden{display:none!important}
-        .patrol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:5px;margin-top:15px}
-        .patrol-day{text-align:center;padding:8px 4px;border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer}
-        .patrol-day.checked{background:var(--success);color:#fff;border-color:var(--success)}
-        .patrol-day .day-num{font-weight:700;display:block}
-        .patrol-day .day-name{font-size:9px;opacity:0.7}
-        @media(max-width:768px){.header-content{flex-direction:column}.dashboard-grid{grid-template-columns:1fr}.entry-row{grid-template-columns:1fr}}
+        .data-table th{background:var(--hawk-blue);color:#fff;padding:12px;text-align:left;font-weight:500;white-space:nowrap}
+        .data-table td{padding:12px;border-bottom:1px solid var(--border)}
+        .data-table tr:hover{background:var(--bg)}
+        .data-table .total-row{background:var(--bg);font-weight:600}
+        
+        /* Import Section */
+        .import-card{background:linear-gradient(135deg,#fef2f2,#fff7ed);border:2px dashed var(--hawk-red);border-radius:12px;padding:25px;text-align:center;margin-bottom:16px}
+        .import-card h4{color:var(--hawk-red);margin-bottom:8px}
+        .import-card p{color:var(--muted);font-size:13px;margin-bottom:15px}
+        .import-card input[type="file"]{display:none}
+        .import-card label{display:inline-block;padding:10px 20px;background:var(--hawk-red);color:#fff;border-radius:6px;cursor:pointer;font-weight:500;font-size:13px}
+        
+        .toast-container{position:fixed;bottom:20px;right:20px;z-index:2000}
+        .toast{padding:12px 20px;border-radius:8px;color:#fff;font-size:13px;margin-top:8px;animation:slideIn 0.3s}
+        .toast.success{background:var(--success)}
+        .toast.error{background:var(--error)}
+        .toast.info{background:var(--hawk-blue)}
+        @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        
+        .badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600}
+        .badge-success{background:#D1FAE5;color:#059669}
+        .badge-warning{background:#FEF3C7;color:#D97706}
+        .badge-info{background:#DBEAFE;color:#1D4ED8}
+        
+        @media(max-width:900px){
+            .sidebar{width:60px;padding:10px 0}
+            .sidebar-logo h2,.nav-item span,.user-details{display:none}
+            .nav-item{justify-content:center;padding:12px}
+            .main-area{margin-left:60px}
+        }
+        @media(max-width:600px){
+            .sidebar{display:none}
+            .main-area{margin-left:0}
+            .stats-grid{grid-template-columns:1fr 1fr}
+        }
     </style>
 </head>
 <body>
-    <!-- LOGIN SCREEN -->
+    <!-- LOGIN -->
     <div id="loginScreen" class="login-container">
         <div class="login-box">
             <div class="login-header">
-                <div class="login-logo" id="loginLogo">🦅</div>
-                <div class="login-title">Supervisor Portal v3</div>
-                <div class="login-subtitle">Hawk Security Services LLC</div>
+                <div class="login-logo">🦅</div>
+                <div class="login-title">HAWK SECURITY SERVICES</div>
+                <div style="font-size:12px;opacity:0.8;margin-top:5px">Supervisor Reporting Portal</div>
             </div>
             <div class="login-form">
                 <div id="loginMsg" class="msg"></div>
                 <div class="form-group"><label>Employee ID</label><input type="text" id="loginId" placeholder="e.g., SUP001"></div>
                 <div class="form-group"><label>Password</label><input type="password" id="loginPw" placeholder="Enter password"></div>
-                <button class="btn btn-primary" onclick="doLogin()">🔐 Login</button>
-                <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted);">Demo: SUP001/hawk123 | MGR001/manager123</p>
+                <button class="btn btn-primary" onclick="doLogin()">🔐 Sign In</button>
+                <p style="text-align:center;margin-top:15px;font-size:11px;color:var(--muted)">Demo: SUP001 / hawk123</p>
             </div>
             <div class="login-footer">© 2026 Hawk Security Services LLC</div>
         </div>
     </div>
 
-    <!-- MAIN APP -->
+    <!-- APP -->
     <div id="appScreen" class="app-container">
-        <header class="app-header">
-            <div class="header-content">
-                <div class="header-brand">
-                    <div class="header-logo" id="headerLogo">🦅</div>
-                    <div class="header-title"><h1>Supervisor Portal v3</h1><p>Hawk Security Services LLC</p></div>
-                </div>
-                <div class="header-actions">
-                    <button class="header-btn" onclick="loadData()">🔄 Refresh</button>
-                    <button class="header-btn" onclick="exportData()">📤 Export</button>
-                    <div class="user-info">
-                        <div class="user-avatar" id="userAvatar">YU</div>
-                        <div><div id="userName" class="user-name">User</div><div id="userRole" class="user-role">Role</div></div>
-                    </div>
-                    <button class="header-btn" onclick="doLogout()">🚪</button>
-                </div>
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="icon">🦅</div>
+                <h2>HAWK SECURITY</h2>
             </div>
-        </header>
-        <nav class="nav-tabs">
-            <div class="nav-tabs-inner">
-                <button class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
-                <button class="nav-tab" data-tab="reports">📝 Reports</button>
-                <button class="nav-tab" data-tab="history">📜 History</button>
-                <button class="nav-tab management-only" data-tab="management">👔 Management</button>
-                <button class="nav-tab" data-tab="data">🗄️ Import Data</button>
-            </div>
-        </nav>
-        <main class="main-content">
-            <!-- DASHBOARD -->
-            <div id="dashboardTab" class="tab-content active">
-                <div class="dashboard-grid">
-                    <div class="stat-card primary"><div class="stat-value" id="statCompleted">0/9</div><div class="stat-label">Reports Submitted</div><div class="progress-bar-bg"><div class="progress-bar" id="progressBar" style="width:0%"></div></div></div>
-                    <div class="stat-card blue"><div class="stat-value" id="statSites">0</div><div class="stat-label">Sites</div></div>
-                    <div class="stat-card"><div class="stat-value" id="statEmps">0</div><div class="stat-label">Employees</div></div>
-                    <div class="stat-card"><div class="stat-value" id="statDays">0</div><div class="stat-label">Days Left</div></div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-tab="dashboard"><span class="icon">📊</span><span>Dashboard</span></div>
+                <div class="nav-item" data-tab="daily"><span class="icon">📝</span><span>Daily Entry</span></div>
+                <div class="nav-item" data-tab="reports"><span class="icon">📋</span><span>View Reports</span></div>
+                <div class="nav-item" data-tab="data"><span class="icon">🗄️</span><span>Master Data</span></div>
+                <div class="nav-item management-only" data-tab="management"><span class="icon">👔</span><span>Management</span></div>
+            </nav>
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebarAvatar">YU</div>
+                <div class="user-details">
+                    <div class="user-name" id="sidebarName">User</div>
+                    <div class="user-role" id="sidebarRole">Role</div>
                 </div>
-                <h3 style="margin-bottom:16px;color:var(--hawk-red-dark);">📝 Pending Reports for <span id="currentMonth"></span></h3>
-                <div class="reports-grid" id="pendingGrid"></div>
+                <button style="background:none;border:none;color:#fff;cursor:pointer;font-size:16px" onclick="doLogout()">🚪</button>
             </div>
-            
-            <!-- ALL REPORTS -->
-            <div id="reportsTab" class="tab-content">
-                <h2 style="margin-bottom:18px;color:var(--hawk-red-dark);">Monthly Reports - <span id="periodLabel"></span></h2>
-                <div class="reports-grid" id="allReportsGrid"></div>
-            </div>
-            
-            <!-- HISTORY -->
-            <div id="historyTab" class="tab-content">
-                <h2 style="margin-bottom:18px;color:var(--hawk-red-dark);">📜 Submitted Reports</h2>
-                <div id="historyList"></div>
-            </div>
-            
-            <!-- MANAGEMENT -->
-            <div id="managementTab" class="tab-content">
-                <h2 style="margin-bottom:18px;color:var(--hawk-red-dark);">👔 Management Dashboard</h2>
-                <div class="dashboard-grid">
-                    <div class="stat-card primary"><div class="stat-value" id="mgrTotalReports">0</div><div class="stat-label">Total Reports</div></div>
-                    <div class="stat-card blue"><div class="stat-value" id="mgrSupervisors">0</div><div class="stat-label">Supervisors</div></div>
-                </div>
-                <div class="section-box"><h3>📊 By Supervisor</h3><div id="supervisorBreakdown"></div></div>
-                <div class="section-box"><h3>📋 All Reports</h3><div id="allReportsList"></div></div>
-            </div>
-            
-            <!-- IMPORT DATA -->
-            <div id="dataTab" class="tab-content">
-                <div class="import-box">
-                    <h4>📥 Import Sites/Clients</h4>
-                    <p>CSV columns: siteId, name, location, contactPerson, manningRequired</p>
-                    <input type="file" id="sitesFile" accept=".csv,.json" onchange="importSites(event)">
-                    <label for="sitesFile">📁 Upload Sites</label>
-                    <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:5px" onclick="downloadSitesTemplate()">📄 Template</button>
-                </div>
-                <div class="section-box">
-                    <h3>🏢 Sites (<span id="siteCount">0</span>) <button class="btn btn-danger" style="width:auto;padding:5px 15px;font-size:12px;margin-left:auto" onclick="clearSites()">Clear</button></h3>
-                    <table class="data-table" id="sitesTable"><thead><tr><th>ID</th><th>Client Name</th><th>Location</th><th>Contact</th><th>Manning</th></tr></thead><tbody></tbody></table>
-                </div>
-                <div class="import-box">
-                    <h4>📥 Import Employees</h4>
-                    <p>CSV columns: empId, name, designation, siteId, status</p>
-                    <input type="file" id="empsFile" accept=".csv,.json" onchange="importEmployees(event)">
-                    <label for="empsFile">📁 Upload Employees</label>
-                    <button class="btn btn-secondary" style="width:auto;padding:10px 20px;margin:5px" onclick="downloadEmpsTemplate()">📄 Template</button>
-                </div>
-                <div class="section-box">
-                    <h3>👥 Employees (<span id="empCount">0</span>) <button class="btn btn-danger" style="width:auto;padding:5px 15px;font-size:12px;margin-left:auto" onclick="clearEmployees()">Clear</button></h3>
-                    <table class="data-table" id="empsTable"><thead><tr><th>ID</th><th>Name</th><th>Designation</th><th>Site</th><th>Status</th></tr></thead><tbody></tbody></table>
-                </div>
-            </div>
-        </main>
-    </div>
+        </aside>
 
-    <!-- REPORT MODAL -->
-    <div id="reportModal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title"><span id="rptIcon">📝</span> <span id="rptTitle">Report</span></div>
-                <button class="modal-close" onclick="hideModal()">×</button>
+        <div class="main-area">
+            <div class="top-bar">
+                <div class="page-title" id="pageTitle">Dashboard</div>
+                <div class="top-actions">
+                    <div class="date-display" id="todayDate"></div>
+                    <button class="btn btn-sm btn-secondary" onclick="loadData()">🔄 Refresh</button>
+                </div>
             </div>
-            <div class="modal-body" id="reportFormBody"></div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="submitReport()">✓ Submit Report</button>
+
+            <div class="content">
+                <!-- DASHBOARD -->
+                <div id="dashboardTab" class="tab-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card highlight">
+                            <div class="stat-icon">📝</div>
+                            <div class="stat-value" id="todayEntries">0</div>
+                            <div class="stat-label">Today's Entries</div>
+                        </div>
+                        <div class="stat-card blue">
+                            <div class="stat-icon">📅</div>
+                            <div class="stat-value" id="monthEntries">0</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🏢</div>
+                            <div class="stat-value" id="totalSites">0</div>
+                            <div class="stat-label">Active Sites</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-value" id="totalEmps">0</div>
+                            <div class="stat-label">Employees</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom:15px;color:var(--hawk-dark)">📝 Quick Daily Entry</h3>
+                    <div class="reports-grid" id="quickEntryGrid"></div>
+                </div>
+
+                <!-- DAILY ENTRY -->
+                <div id="dailyTab" class="tab-content">
+                    <div class="view-controls">
+                        <div class="date-filter">
+                            <label style="font-size:13px;color:var(--muted)">Entry Date:</label>
+                            <input type="date" id="entryDate" onchange="setEntryDate(this.value)">
+                        </div>
+                    </div>
+                    <div class="reports-grid" id="dailyEntryGrid"></div>
+                </div>
+
+                <!-- VIEW REPORTS -->
+                <div id="reportsTab" class="tab-content">
+                    <div class="view-controls">
+                        <div class="view-toggle">
+                            <button class="view-btn active" onclick="setViewMode('daily')">Daily</button>
+                            <button class="view-btn" onclick="setViewMode('weekly')">Weekly</button>
+                            <button class="view-btn" onclick="setViewMode('monthly')">Monthly</button>
+                        </div>
+                        <div class="date-filter">
+                            <input type="date" id="reportFromDate">
+                            <span style="color:var(--muted)">to</span>
+                            <input type="date" id="reportToDate">
+                            <button class="btn btn-sm btn-blue" onclick="loadReportView()">🔍 View</button>
+                        </div>
+                        <select id="reportTypeFilter" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px">
+                            <option value="">All Report Types</option>
+                        </select>
+                        <button class="btn btn-sm btn-success" onclick="exportReport()">📥 Export Excel</button>
+                    </div>
+                    <div id="reportViewContent"></div>
+                </div>
+
+                <!-- MASTER DATA -->
+                <div id="dataTab" class="tab-content">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                        <div>
+                            <div class="import-card">
+                                <h4>📥 Import Sites</h4>
+                                <p>CSV: siteId, name, location, contactPerson</p>
+                                <input type="file" id="sitesFile" accept=".csv,.json" onchange="importSites(event)">
+                                <label for="sitesFile">Upload CSV</label>
+                            </div>
+                            <div class="data-table-wrapper">
+                                <table class="data-table">
+                                    <thead><tr><th>ID</th><th>Site Name</th><th>Location</th><th>Contact</th></tr></thead>
+                                    <tbody id="sitesTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="import-card">
+                                <h4>📥 Import Employees</h4>
+                                <p>CSV: empId, name, designation, siteId</p>
+                                <input type="file" id="empsFile" accept=".csv,.json" onchange="importEmployees(event)">
+                                <label for="empsFile">Upload CSV</label>
+                            </div>
+                            <div class="data-table-wrapper">
+                                <table class="data-table">
+                                    <thead><tr><th>ID</th><th>Name</th><th>Designation</th><th>Site</th></tr></thead>
+                                    <tbody id="empsTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANAGEMENT -->
+                <div id="managementTab" class="tab-content">
+                    <div class="stats-grid">
+                        <div class="stat-card highlight">
+                            <div class="stat-value" id="mgrTotal">0</div>
+                            <div class="stat-label">Total Entries This Month</div>
+                        </div>
+                        <div class="stat-card blue">
+                            <div class="stat-value" id="mgrSupervisors">0</div>
+                            <div class="stat-label">Active Supervisors</div>
+                        </div>
+                    </div>
+                    <div class="data-table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Supervisor</th><th>Today</th><th>This Week</th><th>This Month</th></tr></thead>
+                            <tbody id="mgrTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="toastContainer" class="toast-container"></div>
+    <!-- ENTRY MODAL -->
+    <div id="entryModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title"><span id="modalIcon">📝</span> <span id="modalTitle">Daily Entry</span></div>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveEntry()">💾 Save Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
 
 <script>
+// ===== CONFIGURATION =====
 const API = '';
-
-// EXACT report definitions matching your company templates
-const REPORTS = [
-    { id: 'site_survey', name: 'Site Survey Summary', icon: '🏢', desc: 'Site visit tracking with manning details' },
-    { id: 'customer_feedback', name: 'Customer Feedback Form', icon: '⭐', desc: 'Client satisfaction certification' },
-    { id: 'collection_report', name: 'Collection Report', icon: '💰', desc: 'Payment collections tracking' },
-    { id: 'sales_leads', name: 'Sales Reference Report', icon: '📈', desc: 'New business leads & proposals' },
-    { id: 'night_patrolling', name: 'Night Patrolling Roster', icon: '🌙', desc: 'Monthly patrolling calendar' },
-    { id: 'training_summary', name: 'Training Summary', icon: '🎓', desc: 'Staff training records' },
-    { id: 'complaints', name: 'Complaints Login Report', icon: '⚠️', desc: 'Complaint tracking & resolution' },
-    { id: 'accommodation', name: 'Accommodation Inspection', icon: '🏠', desc: 'Staff housing inspections' },
-    { id: 'mobilization', name: 'Mobilization & Demobilization', icon: '👥', desc: 'Staff deployment tracking' }
+const REPORT_TYPES = [
+    { id: 'site_visit', name: 'Site Visit', icon: '🏢', color: '#3B82F6',
+      fields: [
+        { key: 'site', label: 'Site/Client', type: 'site', required: true },
+        { key: 'location', label: 'Location', type: 'text' },
+        { key: 'purpose', label: 'Purpose of Visit', type: 'select', options: ['Routine Check', 'Client Meeting', 'Issue Resolution', 'Training', 'Inspection'] },
+        { key: 'manningStatus', label: 'Manning Status', type: 'select', options: ['Full', 'Partial', 'Short'] },
+        { key: 'issues', label: 'Issues Found', type: 'textarea' },
+        { key: 'actionTaken', label: 'Action Taken', type: 'textarea' }
+      ]},
+    { id: 'customer_feedback', name: 'Customer Feedback', icon: '⭐', color: '#F59E0B',
+      fields: [
+        { key: 'site', label: 'Client', type: 'site', required: true },
+        { key: 'contactPerson', label: 'Contact Person', type: 'text' },
+        { key: 'serviceType', label: 'Service Type', type: 'select', options: ['Security', 'Cleaning', 'Office Support', 'Combined'] },
+        { key: 'rating', label: 'Rating', type: 'select', options: ['Outstanding', 'Good', 'Satisfied', 'Needs Improvement'], required: true },
+        { key: 'feedback', label: 'Feedback/Comments', type: 'textarea' }
+      ]},
+    { id: 'collection', name: 'Payment Collection', icon: '💰', color: '#10B981',
+      fields: [
+        { key: 'site', label: 'Client', type: 'site', required: true },
+        { key: 'invoiceNo', label: 'Invoice No', type: 'text' },
+        { key: 'amount', label: 'Amount (AED)', type: 'number', required: true },
+        { key: 'paymentMode', label: 'Payment Mode', type: 'select', options: ['Cash', 'Cheque', 'Bank Transfer', 'Online'] },
+        { key: 'chequeNo', label: 'Cheque/Ref No', type: 'text' },
+        { key: 'remarks', label: 'Remarks', type: 'text' }
+      ]},
+    { id: 'sales_lead', name: 'Sales Lead', icon: '📈', color: '#8B5CF6',
+      fields: [
+        { key: 'clientName', label: 'Prospect Name', type: 'text', required: true },
+        { key: 'contactPerson', label: 'Contact Person', type: 'text' },
+        { key: 'phone', label: 'Phone', type: 'text' },
+        { key: 'requirement', label: 'Requirement', type: 'textarea' },
+        { key: 'quantity', label: 'Manpower Required', type: 'text' },
+        { key: 'status', label: 'Status', type: 'select', options: ['New', 'Follow-up', 'Proposal Sent', 'Negotiation', 'Won', 'Lost'] },
+        { key: 'nextAction', label: 'Next Action', type: 'text' }
+      ]},
+    { id: 'night_patrol', name: 'Night Patrolling', icon: '🌙', color: '#1E3A5F',
+      fields: [
+        { key: 'site', label: 'Site', type: 'site', required: true },
+        { key: 'patrolTime', label: 'Patrol Time', type: 'time', required: true },
+        { key: 'guardOnDuty', label: 'Guard on Duty', type: 'employee' },
+        { key: 'status', label: 'Status', type: 'select', options: ['All Clear', 'Minor Issue', 'Major Issue'] },
+        { key: 'findings', label: 'Findings', type: 'textarea' },
+        { key: 'actionTaken', label: 'Action Taken', type: 'textarea' }
+      ]},
+    { id: 'training', name: 'Training', icon: '🎓', color: '#EC4899',
+      fields: [
+        { key: 'site', label: 'Site/Location', type: 'site' },
+        { key: 'trainingType', label: 'Training Type', type: 'select', options: ['Fire Safety', 'First Aid', 'Security Procedures', 'Customer Service', 'HSE', 'Grooming', 'Other'] },
+        { key: 'topic', label: 'Topic', type: 'text' },
+        { key: 'attendees', label: 'No. of Attendees', type: 'number' },
+        { key: 'duration', label: 'Duration (hrs)', type: 'number' },
+        { key: 'remarks', label: 'Remarks', type: 'textarea' }
+      ]},
+    { id: 'complaint', name: 'Complaint', icon: '⚠️', color: '#EF4444',
+      fields: [
+        { key: 'site', label: 'Client', type: 'site', required: true },
+        { key: 'nature', label: 'Nature of Complaint', type: 'select', options: ['Service Quality', 'Staff Behavior', 'Attendance', 'Uniform', 'Safety Issue', 'Other'] },
+        { key: 'description', label: 'Description', type: 'textarea', required: true },
+        { key: 'personInvolved', label: 'Person Involved', type: 'text' },
+        { key: 'actionTaken', label: 'Action Taken', type: 'textarea' },
+        { key: 'status', label: 'Status', type: 'select', options: ['Open', 'In Progress', 'Resolved', 'Escalated'] },
+        { key: 'clientSatisfied', label: 'Client Satisfied', type: 'select', options: ['Yes', 'No', 'Pending'] }
+      ]},
+    { id: 'accommodation', name: 'Accommodation Check', icon: '🏠', color: '#14B8A6',
+      fields: [
+        { key: 'location', label: 'Accommodation Location', type: 'text', required: true },
+        { key: 'occupants', label: 'No. of Occupants', type: 'number' },
+        { key: 'cleanliness', label: 'Cleanliness', type: 'select', options: ['Excellent', 'Good', 'Average', 'Poor'] },
+        { key: 'maintenance', label: 'Maintenance Issues', type: 'textarea' },
+        { key: 'remarks', label: 'Remarks', type: 'textarea' }
+      ]},
+    { id: 'mobilization', name: 'Mobilization/Demob', icon: '👥', color: '#6366F1',
+      fields: [
+        { key: 'actionType', label: 'Action', type: 'select', options: ['Mobilization', 'Demobilization'], required: true },
+        { key: 'site', label: 'Client', type: 'site', required: true },
+        { key: 'serviceType', label: 'Service Type', type: 'text' },
+        { key: 'maleCount', label: 'Male Guards', type: 'number' },
+        { key: 'femaleCount', label: 'Female Guards', type: 'number' },
+        { key: 'remarks', label: 'Remarks', type: 'textarea' }
+      ]},
+    { id: 'disciplinary', name: 'Disciplinary Action', icon: '🛡️', color: '#DC2626',
+      fields: [
+        { key: 'employee', label: 'Employee', type: 'employee', required: true },
+        { key: 'site', label: 'Site', type: 'site' },
+        { key: 'actionType', label: 'Action Type', type: 'select', options: ['Verbal Warning', 'Written Warning', 'Fine', 'Suspension', 'Termination'] },
+        { key: 'reason', label: 'Reason', type: 'textarea', required: true },
+        { key: 'fineAmount', label: 'Fine Amount (AED)', type: 'number' }
+      ]}
 ];
 
-// EXACT field configurations matching your templates
-const REPORT_FIELDS = {
-    site_survey: [
-        { k: 'date', l: 'Date', t: 'date' },
-        { k: 'clientName', l: 'Client Name', t: 'site' },
-        { k: 'location', l: 'Location', t: 'text' },
-        { k: 'manningRequired', l: 'Manning Required', t: 'number' },
-        { k: 'contactPerson', l: 'Contact Person', t: 'text' },
-        { k: 'surveyDoneBy', l: 'Survey Done By', t: 'text' }
-    ],
-    customer_feedback: [
-        { k: 'date', l: 'Dated', t: 'date' },
-        { k: 'client', l: 'Client', t: 'site' },
-        { k: 'location', l: 'Location', t: 'text' },
-        { k: 'serviceType', l: 'Type of Service', t: 'select', o: ['Security Guard Services', 'Cleaning Services', 'Office Support Services', 'Others'] },
-        { k: 'month', l: 'Month', t: 'text' },
-        { k: 'personnel', l: 'No. of Personnel', t: 'number' },
-        { k: 'assessment', l: 'Assessment', t: 'select', o: ['Satisfied', 'Good', 'Outstanding'] },
-        { k: 'comments', l: 'Comments/Suggestions', t: 'textarea' },
-        { k: 'signatureName', l: 'Signature Name', t: 'text' },
-        { k: 'designation', l: 'Designation', t: 'text' }
-    ],
-    collection_report: [
-        { k: 'date', l: 'Payment Collected Date', t: 'date' },
-        { k: 'clientName', l: 'Client Name', t: 'site' },
-        { k: 'invoiceNo', l: 'Invoice No', t: 'text' },
-        { k: 'paymentMode', l: 'Mode of Payment', t: 'select', o: ['Cash', 'Cheque', 'Bank Transfer'] },
-        { k: 'amount', l: 'Amount (AED)', t: 'number' }
-    ],
-    sales_leads: [
-        { k: 'status', l: 'Status', t: 'select', o: ['Open', 'Won', 'Lost', 'Follow-up'] },
-        { k: 'sourceDate', l: 'Source Date', t: 'date' },
-        { k: 'clientType', l: 'Client Type', t: 'select', o: ['New', 'Existing'] },
-        { k: 'leadInformedTo', l: 'Lead Informed To', t: 'text' },
-        { k: 'clientName', l: 'Client Name', t: 'text' },
-        { k: 'contactPerson', l: 'Contact Person', t: 'text' },
-        { k: 'quantity', l: 'Quantity', t: 'text' },
-        { k: 'serviceType', l: 'Type of Service', t: 'select', o: ['Annual Contract', 'Event Security', 'Cleaning', 'Office Support', 'Others'] },
-        { k: 'closingDate', l: 'Closing Date', t: 'date' },
-        { k: 'description', l: 'Sales Activity Description', t: 'textarea' }
-    ],
-    training_summary: [
-        { k: 'date', l: 'Date', t: 'date' },
-        { k: 'time', l: 'Time', t: 'time' },
-        { k: 'clientName', l: 'Client Name', t: 'site' },
-        { k: 'location', l: 'Location', t: 'text' },
-        { k: 'trainingType', l: 'Training Type', t: 'text' },
-        { k: 'countAttended', l: 'Count Attended', t: 'number' }
-    ],
-    complaints: [
-        { k: 'date', l: 'Date', t: 'date' },
-        { k: 'clientName', l: 'Client Name', t: 'site' },
-        { k: 'nature', l: 'Nature of Complaint', t: 'textarea' },
-        { k: 'personsInvolved', l: 'Persons Involved', t: 'text' },
-        { k: 'courseOfAction', l: 'Course of Action', t: 'textarea' },
-        { k: 'status', l: 'Status', t: 'select', o: ['Open', 'In Progress', 'Resolved', 'Escalated'] },
-        { k: 'supervisorName', l: 'Supervisor Name', t: 'text' },
-        { k: 'clientSatisfied', l: 'Client Satisfied', t: 'select', o: ['Satisfied', 'Not Satisfied', 'Pending'] }
-    ],
-    accommodation: [
-        { k: 'date', l: 'Inspection Carried Date', t: 'date' },
-        { k: 'inspectionDoneBy', l: 'Inspection Done By', t: 'text' },
-        { k: 'location', l: 'Location', t: 'text' },
-        { k: 'remarks', l: 'Remarks', t: 'textarea' }
-    ],
-    mobilization: [
-        { k: 'actionType', l: 'Action Type', t: 'select', o: ['Mobilization', 'Demobilization'] },
-        { k: 'date', l: 'Date', t: 'date' },
-        { k: 'clientName', l: 'Client Name', t: 'site' },
-        { k: 'location', l: 'Location', t: 'text' },
-        { k: 'serviceType', l: 'Type of Service', t: 'text' },
-        { k: 'guardsMale', l: 'Guards (Male)', t: 'number' },
-        { k: 'guardsFemale', l: 'Guards (Female)', t: 'number' },
-        { k: 'remarks', l: 'Remarks', t: 'text' }
-    ]
-};
+// ===== STATE =====
+let user = null, sites = [], employees = [], entries = [];
+let currentReportType = null, currentEntryDate = new Date().toISOString().split('T')[0];
+let viewMode = 'daily';
 
-let user = null, sites = [], employees = [], reports = [];
-let currentReport = null, formData = { entries: [], patrolDays: [] };
-
+// ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
     const saved = sessionStorage.getItem('hawk_user');
     if (saved) { user = JSON.parse(saved); showApp(); }
-    document.querySelectorAll('.nav-tab').forEach(t => {
-        t.addEventListener('click', () => {
-            document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
-            t.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-            document.getElementById(t.dataset.tab + 'Tab').classList.add('active');
+    
+    // Nav clicks
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(item.dataset.tab + 'Tab').classList.add('active');
+            document.getElementById('pageTitle').textContent = item.querySelector('span:last-child')?.textContent || 'Dashboard';
         });
     });
+    
+    // Set dates
+    document.getElementById('entryDate').value = currentEntryDate;
+    document.getElementById('reportFromDate').value = currentEntryDate;
+    document.getElementById('reportToDate').value = currentEntryDate;
+    document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    
+    // Populate report type filter
+    const filter = document.getElementById('reportTypeFilter');
+    REPORT_TYPES.forEach(r => filter.innerHTML += `<option value="${r.id}">${r.name}</option>`);
 });
 
+// ===== API =====
 async function api(endpoint, method = 'GET', data = null) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (data) opts.body = JSON.stringify(data);
-    const res = await fetch(API + endpoint, opts);
-    return res.json();
+    try {
+        const res = await fetch(API + endpoint, opts);
+        return await res.json();
+    } catch (e) { console.error(e); return { error: e.message }; }
 }
 
+// ===== AUTH =====
 async function doLogin() {
     const empId = document.getElementById('loginId').value.trim();
     const password = document.getElementById('loginPw').value;
-    if (!empId || !password) { showMsg('loginMsg', 'Enter both fields', 'error'); return; }
-    try {
-        const res = await api('/api/auth/login', 'POST', { empId, password });
-        if (res.error) showMsg('loginMsg', res.error, 'error');
-        else { user = res.user; sessionStorage.setItem('hawk_user', JSON.stringify(user)); showApp(); toast('Welcome, ' + user.name, 'success'); }
-    } catch (e) { showMsg('loginMsg', 'Connection error', 'error'); }
+    if (!empId || !password) { showMsg('loginMsg', 'Enter credentials', 'error'); return; }
+    const res = await api('/api/auth/login', 'POST', { empId, password });
+    if (res.error) showMsg('loginMsg', res.error, 'error');
+    else { user = res.user; sessionStorage.setItem('hawk_user', JSON.stringify(user)); showApp(); toast('Welcome, ' + user.name, 'success'); }
 }
 
-function doLogout() { if (confirm('Logout?')) { user = null; sessionStorage.removeItem('hawk_user'); location.reload(); } }
+function doLogout() { if (confirm('Logout?')) { sessionStorage.removeItem('hawk_user'); location.reload(); } }
 function showMsg(id, msg, type) { const el = document.getElementById(id); el.textContent = msg; el.className = 'msg ' + type; }
 
 function showApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
-    document.getElementById('userAvatar').textContent = user.name.substring(0, 2).toUpperCase();
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('userRole').textContent = user.role;
+    document.getElementById('sidebarAvatar').textContent = user.name.substring(0, 2).toUpperCase();
+    document.getElementById('sidebarName').textContent = user.name;
+    document.getElementById('sidebarRole').textContent = user.role;
     document.querySelectorAll('.management-only').forEach(el => el.style.display = user.isAdmin ? '' : 'none');
     loadData();
 }
 
+// ===== DATA LOADING =====
 async function loadData() {
-    try {
-        const [sitesRes, empsRes, reportsRes] = await Promise.all([
-            api('/api/sites'), api('/api/employees'), api('/api/reports?supervisorId=' + user.empId)
-        ]);
-        sites = sitesRes || [];
-        employees = empsRes || [];
-        reports = reportsRes || [];
-        const now = new Date();
-        document.getElementById('periodLabel').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        document.getElementById('currentMonth').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        updateDashboard();
-        updateTables();
-        renderReports();
-        renderHistory();
-        if (user.isAdmin) loadManagement();
-    } catch (e) { toast('Error loading data', 'error'); console.error(e); }
-}
-
-async function loadManagement() {
-    try {
-        const stats = await api('/api/reports/stats');
-        document.getElementById('mgrTotalReports').textContent = stats.totalReports || 0;
-        document.getElementById('mgrSupervisors').textContent = stats.totalSupervisors || 0;
-        let html = '<table class="data-table"><thead><tr><th>Supervisor</th><th>Submitted</th><th>Pending</th></tr></thead><tbody>';
-        for (const [id, data] of Object.entries(stats.bySupervisor || {})) {
-            html += `<tr><td>${data.name}</td><td>${data.reports.length}/9</td><td>${9 - data.reports.length}</td></tr>`;
-        }
-        html += '</tbody></table>';
-        document.getElementById('supervisorBreakdown').innerHTML = html;
-        const allReports = await api('/api/reports');
-        let rptHtml = '<table class="data-table"><thead><tr><th>Report</th><th>Supervisor</th><th>Date</th></tr></thead><tbody>';
-        (allReports || []).slice(0, 50).forEach(r => {
-            const rt = REPORTS.find(x => x.id === r.reportType);
-            rptHtml += `<tr><td>${rt ? rt.icon + ' ' + rt.name : r.reportType}</td><td>${r.supervisorName}</td><td>${new Date(r.submittedAt).toLocaleDateString()}</td></tr>`;
-        });
-        rptHtml += '</tbody></table>';
-        document.getElementById('allReportsList').innerHTML = rptHtml;
-    } catch (e) { console.error(e); }
-}
-
-function updateTables() {
-    document.querySelector('#sitesTable tbody').innerHTML = sites.map(s => 
-        `<tr><td>${s.siteId || s.id}</td><td>${s.name || s.client}</td><td>${s.location || '-'}</td><td>${s.contactPerson || '-'}</td><td>${s.manningRequired || '-'}</td></tr>`
-    ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No sites imported yet</td></tr>';
-    document.getElementById('siteCount').textContent = sites.length;
+    const [sitesRes, empsRes, entriesRes] = await Promise.all([
+        api('/api/sites'),
+        api('/api/employees'),
+        api('/api/entries?supervisorId=' + user.empId)
+    ]);
+    sites = sitesRes || [];
+    employees = empsRes || [];
+    entries = entriesRes || [];
     
-    document.querySelector('#empsTable tbody').innerHTML = employees.map(e => 
-        `<tr><td>${e.empId || e.id}</td><td>${e.name}</td><td>${e.type || e.designation || '-'}</td><td>${e.siteId || '-'}</td><td>${e.status || 'Active'}</td></tr>`
-    ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No employees imported yet</td></tr>';
-    document.getElementById('empCount').textContent = employees.length;
+    updateDashboard();
+    renderReportCards('quickEntryGrid', true);
+    renderReportCards('dailyEntryGrid', false);
+    updateDataTables();
+    if (user.isAdmin) loadManagement();
 }
 
 function updateDashboard() {
-    const now = new Date(), m = now.getMonth() + 1, y = now.getFullYear();
-    const done = reports.filter(r => r.periodMonth === m && r.periodYear === y).map(r => r.reportType);
-    const total = REPORTS.length;
-    document.getElementById('statCompleted').textContent = done.length + '/' + total;
-    document.getElementById('progressBar').style.width = (done.length / total * 100) + '%';
-    document.getElementById('statSites').textContent = sites.length;
-    document.getElementById('statEmps').textContent = employees.length;
-    const deadline = new Date(y, m, 5);
-    document.getElementById('statDays').textContent = Math.max(0, Math.ceil((deadline - now) / 86400000));
-    document.getElementById('pendingGrid').innerHTML = REPORTS.filter(r => !done.includes(r.id)).map(r => reportCard(r, false)).join('');
+    const today = new Date().toISOString().split('T')[0];
+    const thisMonth = today.substring(0, 7);
+    
+    const todayCount = entries.filter(e => e.date === today).length;
+    const monthCount = entries.filter(e => e.date?.startsWith(thisMonth)).length;
+    
+    document.getElementById('todayEntries').textContent = todayCount;
+    document.getElementById('monthEntries').textContent = monthCount;
+    document.getElementById('totalSites').textContent = sites.length;
+    document.getElementById('totalEmps').textContent = employees.length;
 }
 
-function renderReports() {
-    const now = new Date(), m = now.getMonth() + 1, y = now.getFullYear();
-    const done = reports.filter(r => r.periodMonth === m && r.periodYear === y).map(r => r.reportType);
-    document.getElementById('allReportsGrid').innerHTML = REPORTS.map(r => reportCard(r, done.includes(r.id))).join('');
+function renderReportCards(containerId, isQuick) {
+    const container = document.getElementById(containerId);
+    const today = currentEntryDate;
+    
+    container.innerHTML = REPORT_TYPES.map(r => {
+        const todayEntries = entries.filter(e => e.reportType === r.id && e.date === today).length;
+        return `
+        <div class="report-card" onclick="openEntry('${r.id}')">
+            <div class="report-header">
+                <div class="report-icon" style="background:${r.color}20;color:${r.color}">${r.icon}</div>
+                <div>
+                    <div class="report-title">${r.name}</div>
+                    <div class="report-subtitle">Click to add entry</div>
+                </div>
+            </div>
+            <div class="report-stats">
+                <div class="report-stat">
+                    <div class="report-stat-value">${todayEntries}</div>
+                    <div class="report-stat-label">Today</div>
+                </div>
+                <div class="report-stat">
+                    <div class="report-stat-value">${entries.filter(e => e.reportType === r.id).length}</div>
+                    <div class="report-stat-label">Total</div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
 }
 
-function reportCard(r, isDone) {
-    return `<div class="report-card ${isDone ? 'done' : ''}" onclick="${isDone ? '' : "openReport('" + r.id + "')"}">
-        <div class="report-icon" style="background:${isDone ? '#D1FAE5' : '#FEF3C7'}">${r.icon}</div>
-        <div class="report-title">${r.name}</div>
-        <div class="report-desc">${r.desc}</div>
-        <span class="report-status ${isDone ? 'completed' : 'pending'}">${isDone ? '✓ Submitted' : '⏳ Pending'}</span>
-    </div>`;
+function updateDataTables() {
+    document.getElementById('sitesTableBody').innerHTML = sites.length ? 
+        sites.map(s => `<tr><td>${s.siteId || s.id}</td><td>${s.name}</td><td>${s.location || '-'}</td><td>${s.contactPerson || '-'}</td></tr>`).join('') :
+        '<tr><td colspan="4" style="text-align:center;color:var(--muted)">No sites imported</td></tr>';
+    
+    document.getElementById('empsTableBody').innerHTML = employees.length ?
+        employees.map(e => `<tr><td>${e.empId || e.id}</td><td>${e.name}</td><td>${e.type || e.designation || '-'}</td><td>${e.siteId || '-'}</td></tr>`).join('') :
+        '<tr><td colspan="4" style="text-align:center;color:var(--muted)">No employees imported</td></tr>';
 }
 
-function renderHistory() {
-    if (!reports.length) { document.getElementById('historyList').innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px">No reports submitted yet</p>'; return; }
-    const sorted = [...reports].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-    document.getElementById('historyList').innerHTML = `<div class="section-box"><table class="data-table"><thead><tr><th>Report</th><th>Period</th><th>Submitted</th></tr></thead><tbody>
-        ${sorted.map(r => { const rt = REPORTS.find(x => x.id === r.reportType); return `<tr><td>${rt ? rt.icon + ' ' + rt.name : r.reportType}</td><td>${r.periodLabel || ''}</td><td>${new Date(r.submittedAt).toLocaleDateString()}</td></tr>`; }).join('')}
-    </tbody></table></div>`;
+async function loadManagement() {
+    const allEntries = await api('/api/entries');
+    const today = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const thisMonth = today.substring(0, 7);
+    
+    const bySuper = {};
+    (allEntries || []).forEach(e => {
+        if (!bySuper[e.supervisorId]) bySuper[e.supervisorId] = { name: e.supervisorName, today: 0, week: 0, month: 0 };
+        if (e.date === today) bySuper[e.supervisorId].today++;
+        if (e.date >= weekAgo) bySuper[e.supervisorId].week++;
+        if (e.date?.startsWith(thisMonth)) bySuper[e.supervisorId].month++;
+    });
+    
+    document.getElementById('mgrTotal').textContent = (allEntries || []).filter(e => e.date?.startsWith(thisMonth)).length;
+    document.getElementById('mgrSupervisors').textContent = Object.keys(bySuper).length;
+    
+    document.getElementById('mgrTableBody').innerHTML = Object.entries(bySuper).map(([id, d]) => 
+        `<tr><td>${d.name}</td><td>${d.today}</td><td>${d.week}</td><td>${d.month}</td></tr>`
+    ).join('') || '<tr><td colspan="4" style="text-align:center">No data</td></tr>';
 }
 
-// ===== IMPORT FUNCTIONS =====
+// ===== ENTRY MODAL =====
+function openEntry(reportId) {
+    currentReportType = REPORT_TYPES.find(r => r.id === reportId);
+    if (!currentReportType) return;
+    
+    document.getElementById('modalIcon').textContent = currentReportType.icon;
+    document.getElementById('modalTitle').textContent = currentReportType.name + ' - ' + formatDate(currentEntryDate);
+    
+    renderEntryForm();
+    document.getElementById('entryModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('entryModal').classList.remove('active');
+}
+
+function renderEntryForm() {
+    const fields = currentReportType.fields;
+    let html = `<div class="entry-form">`;
+    
+    fields.forEach(f => {
+        html += `<div class="form-group">
+            <label>${f.label}${f.required ? ' *' : ''}</label>`;
+        
+        if (f.type === 'select') {
+            html += `<select id="field_${f.key}"><option value="">Select...</option>${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+        } else if (f.type === 'site') {
+            html += `<select id="field_${f.key}"><option value="">Select Site...</option>${sites.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}</select>`;
+        } else if (f.type === 'employee') {
+            html += `<select id="field_${f.key}"><option value="">Select Employee...</option>${employees.map(e => `<option value="${e.name}">${e.name}</option>`).join('')}</select>`;
+        } else if (f.type === 'textarea') {
+            html += `<textarea id="field_${f.key}" rows="2" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px"></textarea>`;
+        } else {
+            html += `<input type="${f.type}" id="field_${f.key}">`;
+        }
+        html += `</div>`;
+    });
+    
+    html += `</div>`;
+    document.getElementById('modalBody').innerHTML = html;
+}
+
+async function saveEntry() {
+    const data = {};
+    let valid = true;
+    
+    currentReportType.fields.forEach(f => {
+        const el = document.getElementById('field_' + f.key);
+        data[f.key] = el?.value || '';
+        if (f.required && !data[f.key]) valid = false;
+    });
+    
+    if (!valid) { toast('Please fill required fields', 'error'); return; }
+    
+    const entry = {
+        reportType: currentReportType.id,
+        reportName: currentReportType.name,
+        date: currentEntryDate,
+        supervisorId: user.empId,
+        supervisorName: user.name,
+        data: data,
+        createdAt: new Date().toISOString()
+    };
+    
+    const res = await api('/api/entries', 'POST', entry);
+    if (res.error) { toast(res.error, 'error'); return; }
+    
+    toast('Entry saved!', 'success');
+    closeModal();
+    loadData();
+}
+
+// ===== VIEW REPORTS =====
+function setViewMode(mode) {
+    viewMode = mode;
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.view-btn[onclick="setViewMode('${mode}')"]`).classList.add('active');
+    loadReportView();
+}
+
+function setEntryDate(date) {
+    currentEntryDate = date;
+    renderReportCards('dailyEntryGrid', false);
+}
+
+async function loadReportView() {
+    const from = document.getElementById('reportFromDate').value;
+    const to = document.getElementById('reportToDate').value;
+    const type = document.getElementById('reportTypeFilter').value;
+    
+    let filtered = entries.filter(e => {
+        if (from && e.date < from) return false;
+        if (to && e.date > to) return false;
+        if (type && e.reportType !== type) return false;
+        return true;
+    });
+    
+    if (viewMode === 'daily') {
+        renderDailyView(filtered);
+    } else if (viewMode === 'weekly') {
+        renderWeeklyView(filtered);
+    } else {
+        renderMonthlyView(filtered);
+    }
+}
+
+function renderDailyView(data) {
+    if (!data.length) {
+        document.getElementById('reportViewContent').innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px">No entries found for selected criteria</p>';
+        return;
+    }
+    
+    // Group by date
+    const byDate = {};
+    data.forEach(e => {
+        if (!byDate[e.date]) byDate[e.date] = [];
+        byDate[e.date].push(e);
+    });
+    
+    let html = '';
+    Object.keys(byDate).sort().reverse().forEach(date => {
+        html += `<div style="margin-bottom:20px">
+            <h4 style="color:var(--hawk-dark);margin-bottom:10px">${formatDate(date)}</h4>
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead><tr><th>Type</th><th>Details</th><th>Time</th></tr></thead>
+                    <tbody>`;
+        
+        byDate[date].forEach(e => {
+            const rt = REPORT_TYPES.find(r => r.id === e.reportType);
+            const summary = Object.entries(e.data || {}).slice(0, 3).map(([k, v]) => `<b>${k}:</b> ${v}`).join(' | ');
+            html += `<tr>
+                <td><span style="color:${rt?.color || '#333'}">${rt?.icon || '📝'} ${rt?.name || e.reportType}</span></td>
+                <td style="font-size:12px">${summary}</td>
+                <td style="font-size:11px;color:var(--muted)">${new Date(e.createdAt).toLocaleTimeString()}</td>
+            </tr>`;
+        });
+        
+        html += `</tbody></table></div></div>`;
+    });
+    
+    document.getElementById('reportViewContent').innerHTML = html;
+}
+
+function renderWeeklyView(data) {
+    // Group by week
+    const byWeek = {};
+    data.forEach(e => {
+        const d = new Date(e.date);
+        const week = getWeekNumber(d);
+        const key = `${d.getFullYear()}-W${week}`;
+        if (!byWeek[key]) byWeek[key] = { entries: [], types: {} };
+        byWeek[key].entries.push(e);
+        byWeek[key].types[e.reportType] = (byWeek[key].types[e.reportType] || 0) + 1;
+    });
+    
+    let html = '<div class="data-table-wrapper"><table class="data-table"><thead><tr><th>Week</th>';
+    REPORT_TYPES.forEach(r => html += `<th style="text-align:center">${r.icon}</th>`);
+    html += '<th>Total</th></tr></thead><tbody>';
+    
+    Object.keys(byWeek).sort().reverse().forEach(week => {
+        html += `<tr><td><b>${week}</b></td>`;
+        REPORT_TYPES.forEach(r => {
+            const count = byWeek[week].types[r.id] || 0;
+            html += `<td style="text-align:center">${count || '-'}</td>`;
+        });
+        html += `<td><b>${byWeek[week].entries.length}</b></td></tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    document.getElementById('reportViewContent').innerHTML = html || '<p style="text-align:center;color:var(--muted);padding:40px">No data</p>';
+}
+
+function renderMonthlyView(data) {
+    // Group by month
+    const byMonth = {};
+    data.forEach(e => {
+        const key = e.date?.substring(0, 7) || 'Unknown';
+        if (!byMonth[key]) byMonth[key] = { entries: [], types: {} };
+        byMonth[key].entries.push(e);
+        byMonth[key].types[e.reportType] = (byMonth[key].types[e.reportType] || 0) + 1;
+    });
+    
+    let html = '<div class="data-table-wrapper"><table class="data-table"><thead><tr><th>Month</th>';
+    REPORT_TYPES.forEach(r => html += `<th style="text-align:center">${r.icon}</th>`);
+    html += '<th>Total</th></tr></thead><tbody>';
+    
+    Object.keys(byMonth).sort().reverse().forEach(month => {
+        const d = new Date(month + '-01');
+        html += `<tr><td><b>${d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</b></td>`;
+        REPORT_TYPES.forEach(r => {
+            const count = byMonth[month].types[r.id] || 0;
+            html += `<td style="text-align:center">${count || '-'}</td>`;
+        });
+        html += `<td><b>${byMonth[month].entries.length}</b></td></tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    document.getElementById('reportViewContent').innerHTML = html || '<p style="text-align:center;color:var(--muted);padding:40px">No data</p>';
+}
+
+// ===== EXPORT =====
+function exportReport() {
+    const from = document.getElementById('reportFromDate').value;
+    const to = document.getElementById('reportToDate').value;
+    const type = document.getElementById('reportTypeFilter').value;
+    
+    let filtered = entries.filter(e => {
+        if (from && e.date < from) return false;
+        if (to && e.date > to) return false;
+        if (type && e.reportType !== type) return false;
+        return true;
+    });
+    
+    if (!filtered.length) { toast('No data to export', 'warning'); return; }
+    
+    // Flatten data for Excel
+    const rows = filtered.map(e => {
+        const rt = REPORT_TYPES.find(r => r.id === e.reportType);
+        return {
+            Date: e.date,
+            'Report Type': rt?.name || e.reportType,
+            Supervisor: e.supervisorName,
+            ...e.data,
+            'Created At': new Date(e.createdAt).toLocaleString()
+        };
+    });
+    
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.writeFile(wb, `Hawk_Report_${from}_to_${to}.xlsx`);
+    toast('Report exported!', 'success');
+}
+
+// ===== IMPORT =====
 function parseCSV(text) {
     const lines = text.trim().split('\n');
     if (lines.length < 2) return [];
@@ -487,171 +842,32 @@ function parseCSV(text) {
 
 async function importSites(event) {
     const file = event.target.files[0]; if (!file) return;
-    try {
-        const text = await file.text();
-        let data = file.name.endsWith('.json') ? JSON.parse(text) : parseCSV(text);
-        if (!Array.isArray(data)) data = data.sites || [data];
-        const res = await api('/api/sites/import', 'POST', { sites: data, replace: false });
-        if (res.error) toast(res.error, 'error');
-        else { toast(`Imported ${res.imported} sites!`, 'success'); loadData(); }
-    } catch (e) { toast('Import failed: ' + e.message, 'error'); }
+    const text = await file.text();
+    const data = file.name.endsWith('.json') ? JSON.parse(text) : parseCSV(text);
+    const res = await api('/api/sites/import', 'POST', { sites: Array.isArray(data) ? data : [data] });
+    if (res.error) toast(res.error, 'error');
+    else { toast(`Imported ${res.imported} sites`, 'success'); loadData(); }
     event.target.value = '';
 }
 
 async function importEmployees(event) {
     const file = event.target.files[0]; if (!file) return;
-    try {
-        const text = await file.text();
-        let data = file.name.endsWith('.json') ? JSON.parse(text) : parseCSV(text);
-        if (!Array.isArray(data)) data = data.employees || [data];
-        const res = await api('/api/employees/import', 'POST', { employees: data, replace: false });
-        if (res.error) toast(res.error, 'error');
-        else { toast(`Imported ${res.imported} employees!`, 'success'); loadData(); }
-    } catch (e) { toast('Import failed: ' + e.message, 'error'); }
+    const text = await file.text();
+    const data = file.name.endsWith('.json') ? JSON.parse(text) : parseCSV(text);
+    const res = await api('/api/employees/import', 'POST', { employees: Array.isArray(data) ? data : [data] });
+    if (res.error) toast(res.error, 'error');
+    else { toast(`Imported ${res.imported} employees`, 'success'); loadData(); }
     event.target.value = '';
 }
 
-function downloadSitesTemplate() {
-    downloadFile('sites_template.csv', 'siteId,name,location,contactPerson,manningRequired\nSITE001,Dubai Mall,Downtown Dubai,John Smith,10\nSITE002,Intercontinental Hotel,Festival City,Jane Doe,5');
+// ===== UTILS =====
+function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function downloadEmpsTemplate() {
-    downloadFile('employees_template.csv', 'empId,name,type,siteId,status\nEMP001,Ahmed Hassan,Security Guard,SITE001,Active\nEMP002,Mohammed Ali,Cleaner,SITE002,Active');
-}
-
-function downloadFile(filename, content) {
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: 'text/csv' })); a.download = filename; a.click();
-}
-
-async function clearSites() { if (confirm('Delete ALL sites?')) { await api('/api/sites/all', 'DELETE'); toast('Sites cleared', 'success'); loadData(); } }
-async function clearEmployees() { if (confirm('Delete ALL employees?')) { await api('/api/employees/all', 'DELETE'); toast('Employees cleared', 'success'); loadData(); } }
-
-// ===== REPORT FORM =====
-function openReport(id) {
-    currentReport = REPORTS.find(r => r.id === id);
-    if (!currentReport) return;
-    formData = { entries: [{}], patrolDays: [] };
-    document.getElementById('rptIcon').textContent = currentReport.icon;
-    document.getElementById('rptTitle').textContent = currentReport.name + ' - ' + new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    renderReportForm();
-    document.getElementById('reportModal').classList.add('active');
-}
-
-function hideModal() { document.getElementById('reportModal').classList.remove('active'); }
-
-function renderReportForm() {
-    // Special case for Night Patrolling - calendar format
-    if (currentReport.id === 'night_patrolling') {
-        renderPatrollingForm();
-        return;
-    }
-    
-    const fields = REPORT_FIELDS[currentReport.id] || [];
-    let html = `<p style="margin-bottom:15px;color:var(--text-muted)">Fill in the entries for this month's ${currentReport.name}.</p>`;
-    html += `<div id="entriesContainer">${formData.entries.map((e, i) => entryRow(fields, e, i)).join('')}</div>`;
-    html += `<button class="add-entry-btn" onclick="addEntry()">+ Add Another Entry</button>`;
-    document.getElementById('reportFormBody').innerHTML = html;
-}
-
-function renderPatrollingForm() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
-    let html = `<p style="margin-bottom:15px;color:var(--text-muted)">Click on days you performed night patrolling this month.</p>`;
-    html += `<div class="form-group"><label>Site</label><select id="patrolSite" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px">
-        <option value="">-- Select Site --</option>
-        ${sites.map(s => `<option value="${s.name || s.client}">${s.name || s.client}</option>`).join('')}
-    </select></div>`;
-    html += `<div class="patrol-grid">`;
-    for (let d = 1; d <= daysInMonth; d++) {
-        const date = new Date(year, month, d);
-        const dayName = dayNames[date.getDay()];
-        const checked = formData.patrolDays.includes(d) ? 'checked' : '';
-        html += `<div class="patrol-day ${checked}" onclick="togglePatrolDay(${d})">
-            <span class="day-num">${d}</span>
-            <span class="day-name">${dayName}</span>
-        </div>`;
-    }
-    html += `</div>`;
-    html += `<p style="margin-top:15px;font-size:13px;color:var(--text-muted)">Total days: <strong id="patrolCount">${formData.patrolDays.length}</strong></p>`;
-    document.getElementById('reportFormBody').innerHTML = html;
-}
-
-function togglePatrolDay(day) {
-    const idx = formData.patrolDays.indexOf(day);
-    if (idx >= 0) formData.patrolDays.splice(idx, 1);
-    else formData.patrolDays.push(day);
-    formData.patrolDays.sort((a, b) => a - b);
-    renderPatrollingForm();
-}
-
-function entryRow(fields, data, idx) {
-    let html = `<div class="entry-row" data-idx="${idx}">`;
-    fields.forEach(f => {
-        const val = data[f.k] || '';
-        html += `<div><label>${f.l}</label>`;
-        if (f.t === 'select') {
-            html += `<select onchange="updateEntry(${idx},'${f.k}',this.value)"><option value="">Select</option>${f.o.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
-        } else if (f.t === 'site') {
-            html += `<select onchange="updateEntry(${idx},'${f.k}',this.value)"><option value="">Select Site</option>${sites.map(s => `<option value="${s.name || s.client}" ${val === (s.name || s.client) ? 'selected' : ''}>${s.name || s.client}</option>`).join('')}</select>`;
-        } else if (f.t === 'textarea') {
-            html += `<textarea rows="2" onchange="updateEntry(${idx},'${f.k}',this.value)">${val}</textarea>`;
-        } else {
-            html += `<input type="${f.t}" value="${val}" onchange="updateEntry(${idx},'${f.k}',this.value)">`;
-        }
-        html += '</div>';
-    });
-    html += `<div><label>&nbsp;</label><button class="remove-btn" onclick="removeEntry(${idx})">✕ Remove</button></div></div>`;
-    return html;
-}
-
-function updateEntry(idx, key, val) { formData.entries[idx] = formData.entries[idx] || {}; formData.entries[idx][key] = val; }
-function addEntry() { formData.entries.push({}); renderReportForm(); }
-function removeEntry(idx) { if (formData.entries.length > 1) { formData.entries.splice(idx, 1); renderReportForm(); } }
-
-async function submitReport() {
-    let reportData;
-    
-    if (currentReport.id === 'night_patrolling') {
-        const site = document.getElementById('patrolSite')?.value;
-        if (!site) { toast('Please select a site', 'warning'); return; }
-        if (formData.patrolDays.length === 0) { toast('Please mark at least one patrol day', 'warning'); return; }
-        reportData = { site, patrolDays: formData.patrolDays, totalDays: formData.patrolDays.length };
-    } else {
-        const validEntries = formData.entries.filter(e => Object.values(e).some(v => v && v.toString().trim()));
-        if (!validEntries.length) { toast('Add at least one entry', 'warning'); return; }
-        reportData = { entries: validEntries };
-    }
-    
-    const now = new Date();
-    const payload = {
-        reportType: currentReport.id,
-        period: { month: now.getMonth() + 1, year: now.getFullYear(), label: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) },
-        supervisor: { empId: user.empId, name: user.name },
-        data: reportData
-    };
-    
-    try {
-        const res = await api('/api/reports', 'POST', payload);
-        if (res.error) { toast(res.error, 'error'); return; }
-        toast('Report submitted!', 'success');
-        hideModal();
-        loadData();
-    } catch (e) { toast('Submission failed', 'error'); }
-}
-
-async function exportData() {
-    try {
-        const backup = await api('/api/backup');
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
-        a.download = `hawk_backup_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        toast('Backup exported', 'success');
-    } catch (e) { toast('Export failed', 'error'); }
+function getWeekNumber(d) {
+    const onejan = new Date(d.getFullYear(), 0, 1);
+    return Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
 }
 
 function toast(msg, type = 'info') {
@@ -659,7 +875,7 @@ function toast(msg, type = 'info') {
     t.className = 'toast ' + type;
     t.textContent = msg;
     document.getElementById('toastContainer').appendChild(t);
-    setTimeout(() => t.remove(), 3500);
+    setTimeout(() => t.remove(), 3000);
 }
 </script>
 </body>
