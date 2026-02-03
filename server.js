@@ -1,7 +1,6 @@
 /**
- * HAWK SECURITY SERVICES - Supervisor Reporting Portal v3.0
- * WITH IMPORT FUNCTIONALITY FOR SITES & EMPLOYEES
- * Updated Report Formats Based on Company Templates
+ * HAWK SECURITY SERVICES - Supervisor Portal v4
+ * Daily Entry System with Day/Week/Month Views
  */
 
 const express = require('express');
@@ -12,31 +11,26 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 const DATA_DIR = process.env.NODE_ENV === 'production' ? '/tmp' : __dirname;
 const DB_FILE = path.join(DATA_DIR, 'hawk_data.json');
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // Increased for bulk imports
+app.use(express.json({ limit: '50mb' }));
 
-// Serve static files
+// Static files
 if (fs.existsSync(path.join(__dirname, 'public'))) {
   app.use(express.static(path.join(__dirname, 'public')));
 } else {
   app.use(express.static(__dirname));
 }
 
-// ==================== DATABASE FUNCTIONS ====================
-
+// ===== DATABASE =====
 function loadDB() {
   try {
     if (fs.existsSync(DB_FILE)) {
-      const data = fs.readFileSync(DB_FILE, 'utf8');
-      return JSON.parse(data);
+      return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     }
-  } catch (err) {
-    console.log('Creating new database...');
-  }
+  } catch (err) { console.log('Creating new database...'); }
   return initDB();
 }
 
@@ -44,349 +38,228 @@ function saveDB(db) {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
     return true;
-  } catch (err) {
-    console.error('Error saving database:', err);
-    return false;
-  }
+  } catch (err) { console.error('Save error:', err); return false; }
 }
 
 function initDB() {
   const db = {
     users: [
-      { id: 1, empId: 'SUP001', name: 'Yuvaraj', role: 'Operations Supervisor', password: bcrypt.hashSync('hawk123', 10), isAdmin: false, createdAt: new Date().toISOString() },
-      { id: 2, empId: 'SUP002', name: 'Ahmed Hassan', role: 'Senior Supervisor', password: bcrypt.hashSync('hawk123', 10), isAdmin: false, createdAt: new Date().toISOString() },
-      { id: 3, empId: 'SUP003', name: 'Mohammed Ali', role: 'Supervisor', password: bcrypt.hashSync('hawk123', 10), isAdmin: false, createdAt: new Date().toISOString() },
-      { id: 4, empId: 'ADMIN', name: 'Administrator', role: 'Admin', password: bcrypt.hashSync('admin123', 10), isAdmin: true, createdAt: new Date().toISOString() },
-      { id: 5, empId: 'MGR001', name: 'Management', role: 'Operations Manager', password: bcrypt.hashSync('manager123', 10), isAdmin: true, createdAt: new Date().toISOString() }
+      { id: 1, empId: 'SUP001', name: 'Yuvaraj', role: 'Operations Supervisor', password: bcrypt.hashSync('hawk123', 10), isAdmin: false },
+      { id: 2, empId: 'SUP002', name: 'Ahmed Hassan', role: 'Senior Supervisor', password: bcrypt.hashSync('hawk123', 10), isAdmin: false },
+      { id: 3, empId: 'SUP003', name: 'Mohammed Ali', role: 'Supervisor', password: bcrypt.hashSync('hawk123', 10), isAdmin: false },
+      { id: 4, empId: 'MGR001', name: 'Management', role: 'Operations Manager', password: bcrypt.hashSync('manager123', 10), isAdmin: true },
+      { id: 5, empId: 'ADMIN', name: 'Administrator', role: 'Admin', password: bcrypt.hashSync('admin123', 10), isAdmin: true }
     ],
     sites: [],
     employees: [],
-    reports: [],
-    nextIds: { users: 6, sites: 1, employees: 1, reports: 1 }
+    entries: [],
+    nextIds: { users: 6, sites: 1, employees: 1, entries: 1 }
   };
   saveDB(db);
-  console.log('Database initialized');
   return db;
 }
 
 let db = loadDB();
 
-// ==================== API ROUTES ====================
+// ===== API ROUTES =====
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '3.0.0', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', version: '4.0.0', timestamp: new Date().toISOString() });
 });
 
-// AUTH: Login
+// AUTH
 app.post('/api/auth/login', (req, res) => {
-  try {
-    const { empId, password } = req.body;
-    if (!empId || !password) return res.status(400).json({ error: 'Employee ID and password required' });
-    const user = db.users.find(u => u.empId.toUpperCase() === empId.toUpperCase());
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    const validPassword = bcrypt.compareSync(password, user.password);
-    if (!validPassword) return res.status(401).json({ error: 'Invalid credentials' });
-    console.log(`User logged in: ${user.name}`);
-    res.json({ success: true, user: { id: user.id, empId: user.empId, name: user.name, role: user.role, isAdmin: user.isAdmin } });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-// AUTH: Register
-app.post('/api/auth/register', (req, res) => {
-  try {
-    const { empId, name, role, password } = req.body;
-    if (!empId || !name || !password) return res.status(400).json({ error: 'All fields required' });
-    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    const existing = db.users.find(u => u.empId.toUpperCase() === empId.toUpperCase());
-    if (existing) return res.status(400).json({ error: 'Employee ID already exists' });
-    const newUser = { id: db.nextIds.users++, empId: empId.toUpperCase(), name, role: role || 'Supervisor', password: bcrypt.hashSync(password, 10), isAdmin: false, createdAt: new Date().toISOString() };
-    db.users.push(newUser);
-    saveDB(db);
-    res.json({ success: true, userId: newUser.id });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-// ==================== SITES ====================
-
-app.get('/api/sites', (req, res) => {
-  try { 
-    res.json(db.sites.map(s => ({ 
-      id: s.siteId || s.id, 
-      siteId: s.siteId || s.id,
-      name: s.name || s.clientName, 
-      client: s.client || s.clientName, 
-      location: s.location || s.address,
-      type: s.type,
-      contactPerson: s.contactPerson,
-      manningRequired: s.manningRequired
-    }))); 
+  const { empId, password } = req.body;
+  if (!empId || !password) return res.status(400).json({ error: 'Credentials required' });
+  const user = db.users.find(u => u.empId.toUpperCase() === empId.toUpperCase());
+  if (!user || !bcrypt.compareSync(password, user.password)) {
+    return res.status(401).json({ error: 'Invalid credentials' });
   }
-  catch (err) { res.status(500).json({ error: 'Server error' }); }
+  res.json({ success: true, user: { id: user.id, empId: user.empId, name: user.name, role: user.role, isAdmin: user.isAdmin } });
 });
 
-// SITES: Add single
-app.post('/api/sites', (req, res) => {
-  try {
-    const { siteId, name, client, location, type, contactPerson, manningRequired } = req.body;
-    const id = siteId || `SITE${String(db.nextIds.sites).padStart(3, '0')}`;
-    const existing = db.sites.findIndex(s => (s.siteId || s.id) === id);
-    if (existing >= 0) {
-      db.sites[existing] = { ...db.sites[existing], name, client, location, type, contactPerson, manningRequired };
-    } else {
-      db.sites.push({ id: db.nextIds.sites++, siteId: id, name, client, location, type, contactPerson, manningRequired });
-    }
-    saveDB(db);
-    res.json({ success: true, siteId: id });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
+// SITES
+app.get('/api/sites', (req, res) => res.json(db.sites));
 
-// SITES: Bulk import (CSV/JSON format)
 app.post('/api/sites/import', (req, res) => {
-  try {
-    const { sites, replace } = req.body;
-    if (!Array.isArray(sites)) return res.status(400).json({ error: 'Sites must be an array' });
+  const { sites, replace } = req.body;
+  if (!Array.isArray(sites)) return res.status(400).json({ error: 'Sites must be array' });
+  if (replace) { db.sites = []; db.nextIds.sites = 1; }
+  
+  let imported = 0;
+  sites.forEach(s => {
+    const siteId = s.siteId || s.id || `SITE${String(db.nextIds.sites).padStart(3, '0')}`;
+    const name = s.name || s.Name || s.clientName || '';
+    if (!name) return;
     
-    if (replace) {
-      db.sites = [];
-      db.nextIds.sites = 1;
-    }
-    
-    let imported = 0;
-    for (const s of sites) {
-      const siteId = s.siteId || s.id || s.SiteID || s['Site ID'] || `SITE${String(db.nextIds.sites).padStart(3, '0')}`;
-      const name = s.name || s.Name || s.clientName || s['Client Name'] || s.client || '';
-      const client = s.client || s.Client || s.clientName || s['Client Name'] || name;
-      const location = s.location || s.Location || s.address || s.Address || '';
-      const type = s.type || s.Type || s['Type of Service'] || '';
-      const contactPerson = s.contactPerson || s['Contact Person'] || '';
-      const manningRequired = s.manningRequired || s['Manning Required'] || s.manning || '';
-      
-      if (!name) continue;
-      
-      const existing = db.sites.findIndex(x => (x.siteId || x.id) === siteId);
-      if (existing >= 0) {
-        db.sites[existing] = { ...db.sites[existing], siteId, name, client, location, type, contactPerson, manningRequired };
-      } else {
-        db.sites.push({ id: db.nextIds.sites++, siteId, name, client, location, type, contactPerson, manningRequired });
-      }
-      imported++;
-    }
-    
-    saveDB(db);
-    console.log(`Imported ${imported} sites`);
-    res.json({ success: true, imported, total: db.sites.length });
-  } catch (err) { 
-    console.error('Import sites error:', err);
-    res.status(500).json({ error: 'Server error: ' + err.message }); 
-  }
-});
-
-// SITES: Delete all
-app.delete('/api/sites/all', (req, res) => {
-  try {
-    db.sites = [];
-    db.nextIds.sites = 1;
-    saveDB(db);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-// ==================== EMPLOYEES ====================
-
-app.get('/api/employees', (req, res) => {
-  try { 
-    res.json(db.employees.map(e => ({ 
-      id: e.empId || e.id, 
-      empId: e.empId || e.id,
-      name: e.name, 
-      type: e.type || e.designation, 
-      designation: e.type || e.designation,
-      siteId: e.siteId, 
-      site: e.site || e.siteId,
-      status: e.status || 'Active',
-      phone: e.phone,
-      nationality: e.nationality
-    }))); 
-  }
-  catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-// EMPLOYEES: Add single
-app.post('/api/employees', (req, res) => {
-  try {
-    const { empId, name, type, designation, siteId, site, status, phone, nationality } = req.body;
-    const id = empId || `EMP${String(db.nextIds.employees).padStart(3, '0')}`;
-    const existing = db.employees.findIndex(e => (e.empId || e.id) === id);
-    if (existing >= 0) {
-      db.employees[existing] = { ...db.employees[existing], name, type: type || designation, siteId: siteId || site, status, phone, nationality };
-    } else {
-      db.employees.push({ id: db.nextIds.employees++, empId: id, name, type: type || designation, siteId: siteId || site, status: status || 'Active', phone, nationality });
-    }
-    saveDB(db);
-    res.json({ success: true, empId: id });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-// EMPLOYEES: Bulk import
-app.post('/api/employees/import', (req, res) => {
-  try {
-    const { employees, replace } = req.body;
-    if (!Array.isArray(employees)) return res.status(400).json({ error: 'Employees must be an array' });
-    
-    if (replace) {
-      db.employees = [];
-      db.nextIds.employees = 1;
-    }
-    
-    let imported = 0;
-    for (const e of employees) {
-      const empId = e.empId || e.id || e.EmpID || e['Employee ID'] || e['Emp ID'] || `EMP${String(db.nextIds.employees).padStart(3, '0')}`;
-      const name = e.name || e.Name || e['Employee Name'] || '';
-      const type = e.type || e.Type || e.designation || e.Designation || e['Type of Service'] || 'Security Guard';
-      const siteId = e.siteId || e.site || e.Site || e['Site ID'] || e.Location || '';
-      const status = e.status || e.Status || 'Active';
-      const phone = e.phone || e.Phone || e.Mobile || '';
-      const nationality = e.nationality || e.Nationality || '';
-      
-      if (!name) continue;
-      
-      const existing = db.employees.findIndex(x => (x.empId || x.id) === empId);
-      if (existing >= 0) {
-        db.employees[existing] = { ...db.employees[existing], empId, name, type, siteId, status, phone, nationality };
-      } else {
-        db.employees.push({ id: db.nextIds.employees++, empId, name, type, siteId, status, phone, nationality });
-      }
-      imported++;
-    }
-    
-    saveDB(db);
-    console.log(`Imported ${imported} employees`);
-    res.json({ success: true, imported, total: db.employees.length });
-  } catch (err) { 
-    console.error('Import employees error:', err);
-    res.status(500).json({ error: 'Server error: ' + err.message }); 
-  }
-});
-
-// EMPLOYEES: Delete all
-app.delete('/api/employees/all', (req, res) => {
-  try {
-    db.employees = [];
-    db.nextIds.employees = 1;
-    saveDB(db);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-// ==================== REPORTS ====================
-
-app.get('/api/reports', (req, res) => {
-  try {
-    let { month, year, supervisorId, reportType } = req.query;
-    let reports = [...db.reports];
-    if (month) reports = reports.filter(r => r.periodMonth === parseInt(month));
-    if (year) reports = reports.filter(r => r.periodYear === parseInt(year));
-    if (supervisorId) reports = reports.filter(r => r.supervisorId.toUpperCase() === supervisorId.toUpperCase());
-    if (reportType) reports = reports.filter(r => r.reportType === reportType);
-    reports.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-    res.json(reports);
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.get('/api/reports/stats', (req, res) => {
-  try {
-    const now = new Date();
-    const m = parseInt(req.query.month) || (now.getMonth() + 1);
-    const y = parseInt(req.query.year) || now.getFullYear();
-    const monthReports = db.reports.filter(r => r.periodMonth === m && r.periodYear === y);
-    const bySupervisor = {};
-    monthReports.forEach(r => {
-      if (!bySupervisor[r.supervisorId]) bySupervisor[r.supervisorId] = { name: r.supervisorName, reports: [] };
-      bySupervisor[r.supervisorId].reports.push(r.reportType);
-    });
-    res.json({ 
-      period: { month: m, year: y }, 
-      totalReports: monthReports.length, 
-      totalSupervisors: db.users.filter(u => !u.isAdmin).length, 
-      totalSites: db.sites.length, 
-      totalEmployees: db.employees.length, 
-      bySupervisor, 
-      reportTypes: [...new Set(monthReports.map(r => r.reportType))] 
-    });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.post('/api/reports', (req, res) => {
-  try {
-    const { reportType, period, supervisor, data } = req.body;
-    if (!reportType || !period || !supervisor) return res.status(400).json({ error: 'Missing required fields' });
-    const supervisorId = (supervisor.id || supervisor.empId || '').toUpperCase();
-    const existing = db.reports.find(r => r.reportType === reportType && r.periodMonth === period.month && r.periodYear === period.year && r.supervisorId.toUpperCase() === supervisorId);
-    if (existing) return res.status(400).json({ error: 'Report already submitted for this period' });
-    
-    const newReport = { 
-      id: db.nextIds.reports++, 
-      reportType, 
-      periodMonth: period.month, 
-      periodYear: period.year, 
-      periodLabel: period.label, 
-      supervisorId, 
-      supervisorName: supervisor.name, 
-      data: data || {},
-      submittedAt: new Date().toISOString(), 
-      version: '3.0.0' 
+    const existing = db.sites.findIndex(x => x.siteId === siteId);
+    const siteData = { 
+      siteId, 
+      name, 
+      location: s.location || s.Location || '', 
+      contactPerson: s.contactPerson || s['Contact Person'] || '',
+      manningRequired: s.manningRequired || s.manning || ''
     };
-    db.reports.push(newReport);
-    saveDB(db);
-    console.log(`Report submitted: ${reportType} by ${supervisor.name}`);
-    res.json({ success: true, reportId: newReport.id });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+    
+    if (existing >= 0) db.sites[existing] = { ...db.sites[existing], ...siteData };
+    else { db.sites.push({ id: db.nextIds.sites++, ...siteData }); }
+    imported++;
+  });
+  
+  saveDB(db);
+  res.json({ success: true, imported, total: db.sites.length });
 });
 
-app.delete('/api/reports/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const index = db.reports.findIndex(r => r.id === id);
-    if (index >= 0) { db.reports.splice(index, 1); saveDB(db); res.json({ success: true }); }
-    else res.status(404).json({ error: 'Report not found' });
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+app.delete('/api/sites/all', (req, res) => {
+  db.sites = []; db.nextIds.sites = 1; saveDB(db);
+  res.json({ success: true });
 });
 
-// ==================== BACKUP & EXPORT ====================
+// EMPLOYEES
+app.get('/api/employees', (req, res) => res.json(db.employees));
 
-app.get('/api/backup', (req, res) => {
-  try { 
-    res.json({ 
-      version: '3.0.0', 
-      exportDate: new Date().toISOString(), 
-      data: { 
-        users: db.users.map(u => ({ empId: u.empId, name: u.name, role: u.role, isAdmin: u.isAdmin })), 
-        sites: db.sites, 
-        employees: db.employees, 
-        reports: db.reports 
-      } 
-    }); 
+app.post('/api/employees/import', (req, res) => {
+  const { employees, replace } = req.body;
+  if (!Array.isArray(employees)) return res.status(400).json({ error: 'Employees must be array' });
+  if (replace) { db.employees = []; db.nextIds.employees = 1; }
+  
+  let imported = 0;
+  employees.forEach(e => {
+    const empId = e.empId || e.id || `EMP${String(db.nextIds.employees).padStart(3, '0')}`;
+    const name = e.name || e.Name || '';
+    if (!name) return;
+    
+    const existing = db.employees.findIndex(x => x.empId === empId);
+    const empData = { 
+      empId, 
+      name, 
+      type: e.type || e.designation || e.Designation || 'Guard',
+      siteId: e.siteId || e.site || '',
+      status: e.status || 'Active'
+    };
+    
+    if (existing >= 0) db.employees[existing] = { ...db.employees[existing], ...empData };
+    else { db.employees.push({ id: db.nextIds.employees++, ...empData }); }
+    imported++;
+  });
+  
+  saveDB(db);
+  res.json({ success: true, imported, total: db.employees.length });
+});
+
+app.delete('/api/employees/all', (req, res) => {
+  db.employees = []; db.nextIds.employees = 1; saveDB(db);
+  res.json({ success: true });
+});
+
+// DAILY ENTRIES
+app.get('/api/entries', (req, res) => {
+  let entries = [...db.entries];
+  const { supervisorId, reportType, from, to, date } = req.query;
+  
+  if (supervisorId) entries = entries.filter(e => e.supervisorId?.toUpperCase() === supervisorId.toUpperCase());
+  if (reportType) entries = entries.filter(e => e.reportType === reportType);
+  if (date) entries = entries.filter(e => e.date === date);
+  if (from) entries = entries.filter(e => e.date >= from);
+  if (to) entries = entries.filter(e => e.date <= to);
+  
+  entries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json(entries);
+});
+
+app.post('/api/entries', (req, res) => {
+  const { reportType, reportName, date, supervisorId, supervisorName, data } = req.body;
+  
+  if (!reportType || !date || !supervisorId) {
+    return res.status(400).json({ error: 'Missing required fields' });
   }
-  catch (err) { res.status(500).json({ error: 'Server error' }); }
+  
+  const entry = {
+    id: db.nextIds.entries++,
+    reportType,
+    reportName,
+    date,
+    supervisorId: supervisorId.toUpperCase(),
+    supervisorName,
+    data: data || {},
+    createdAt: new Date().toISOString()
+  };
+  
+  db.entries.push(entry);
+  saveDB(db);
+  
+  console.log(`Entry saved: ${reportType} by ${supervisorName} for ${date}`);
+  res.json({ success: true, entryId: entry.id });
 });
 
+app.delete('/api/entries/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = db.entries.findIndex(e => e.id === id);
+  if (index >= 0) {
+    db.entries.splice(index, 1);
+    saveDB(db);
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ error: 'Entry not found' });
+  }
+});
+
+// STATS
+app.get('/api/stats', (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const thisMonth = today.substring(0, 7);
+  
+  const stats = {
+    totalEntries: db.entries.length,
+    todayEntries: db.entries.filter(e => e.date === today).length,
+    monthEntries: db.entries.filter(e => e.date?.startsWith(thisMonth)).length,
+    totalSites: db.sites.length,
+    totalEmployees: db.employees.length,
+    byReportType: {},
+    bySupervisor: {}
+  };
+  
+  db.entries.forEach(e => {
+    stats.byReportType[e.reportType] = (stats.byReportType[e.reportType] || 0) + 1;
+    if (!stats.bySupervisor[e.supervisorId]) {
+      stats.bySupervisor[e.supervisorId] = { name: e.supervisorName, count: 0 };
+    }
+    stats.bySupervisor[e.supervisorId].count++;
+  });
+  
+  res.json(stats);
+});
+
+// BACKUP
+app.get('/api/backup', (req, res) => {
+  res.json({
+    version: '4.0.0',
+    exportDate: new Date().toISOString(),
+    data: {
+      sites: db.sites,
+      employees: db.employees,
+      entries: db.entries
+    }
+  });
+});
+
+// USERS
 app.get('/api/users', (req, res) => {
-  try { res.json(db.users.map(u => ({ id: u.id, empId: u.empId, name: u.name, role: u.role, isAdmin: u.isAdmin, createdAt: u.createdAt }))); }
-  catch (err) { res.status(500).json({ error: 'Server error' }); }
+  res.json(db.users.map(u => ({ id: u.id, empId: u.empId, name: u.name, role: u.role, isAdmin: u.isAdmin })));
 });
 
-// Catch-all for SPA
+// Catch-all
 app.get('*', (req, res) => {
   const publicPath = path.join(__dirname, 'public', 'index.html');
   const rootPath = path.join(__dirname, 'index.html');
   if (fs.existsSync(publicPath)) res.sendFile(publicPath);
   else if (fs.existsSync(rootPath)) res.sendFile(rootPath);
-  else res.status(404).send('Frontend not found');
+  else res.status(404).send('Not found');
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🦅 Hawk Security Portal v3.0 running on port ${PORT}`);
-  console.log(`   Sites: ${db.sites.length}, Employees: ${db.employees.length}`);
+  console.log(`🦅 Hawk Security Portal v4.0 running on port ${PORT}`);
+  console.log(`   Sites: ${db.sites.length}, Employees: ${db.employees.length}, Entries: ${db.entries.length}`);
 });
 
 process.on('SIGTERM', () => { saveDB(db); process.exit(0); });
